@@ -21,7 +21,38 @@ Kratko opisati cilj Vašeg projekta. Vaša motivacija?  (Napomena: odgovor nije 
 
 # Tehnologije
 
-#Instalcija
+# Instalacija
+
+## Preduvjeti
+- Node.js (verzija 18 ili novija)
+- npm ili yarn
+
+## Koraci instalacije
+
+1. Klonirajte repozitorij:
+```bash
+git clone https://github.com/svebaa/homeflix.git
+cd homeflix
+```
+
+2. Instalirajte ovisnosti:
+```bash
+npm install
+```
+
+3. Pokrenite razvojni server:
+```bash
+npm run dev
+```
+
+4. Otvorite [http://localhost:3000](http://localhost:3000) u pregledniku
+
+## Dodatne naredbe
+
+- `npm run build` - Kreira produkcijsku verziju aplikacije
+- `npm run start` - Pokreće produkcijsku verziju
+- `npm run lint` - Pokreće ESLint za provjeru koda
+
 # Članovi tima 
 > Popis članova tima/linkovi/ glavni doprinos
 >
