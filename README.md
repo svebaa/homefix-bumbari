@@ -31,8 +31,8 @@ Kratko opisati cilj Vašeg projekta. Vaša motivacija?  (Napomena: odgovor nije 
 
 1. Klonirajte repozitorij:
 ```bash
-git clone https://github.com/svebaa/homeflix.git
-cd homeflix
+git clone https://github.com/svebaa/homefix.git
+cd homefix
 ```
 
 2. Instalirajte ovisnosti:
