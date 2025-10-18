@@ -25,8 +25,12 @@ export async function GET(request) {
       } else {
         return NextResponse.redirect(`${origin}${next}`)
       }
+    } else {
+      const response = NextResponse.redirect(`${origin}/login?error=Autentifikacija nije uspjela! Molimo pokušajte ponovno kasnije.`)
+      return response
     }
   }
 
-  return NextResponse.redirect(`${origin}/login`) //TODO: hendlati gresku
+  const response = NextResponse.redirect(`${origin}/login?error=Autentifikacija nije uspjela! Molimo pokušajte ponovno kasnije.`)
+  return response
 }

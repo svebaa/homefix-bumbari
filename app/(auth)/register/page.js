@@ -5,6 +5,8 @@ export const metadata = {
   description: 'Kreirajte novi HomeFix račun',
 }
 
-export default function RegisterPage() {
-  return <RegisterForm />
+export default async function RegisterPage({searchParams}) {
+  const SearchParams = await searchParams;
+  const error = SearchParams.error || null;
+  return <RegisterForm initialError={error} />
 }
