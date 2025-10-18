@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useState } from "react";
 import Link from "next/link";
+import { GoogleLoginPart } from "./google-login-part";
 
 export function LoginForm() {
     const [error, setError] = useState(null);
@@ -70,16 +71,20 @@ export function LoginForm() {
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Prijava u tijeku..." : "Prijavi se"}
                     </Button>
-                    <p className="text-sm text-center text-muted-foreground">
-                        Nemate račun?{" "}
-                        <Link
-                            href="/register"
-                            className="text-primary hover:underline"
-                        >
-                            Registrirajte se
-                        </Link>
-                    </p>
                 </form>
+                
+                <GoogleLoginPart loading={loading}/>
+
+                <p className="text-sm text-center text-muted-foreground">
+                    Nemate račun?{" "}
+                    <Link
+                        href="/register"
+                        className="text-primary hover:underline"
+                    >
+                        Registrirajte se
+                    </Link>
+                </p>
+                
             </CardContent>
         </Card>
     );

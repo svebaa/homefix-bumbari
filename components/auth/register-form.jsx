@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useState } from "react";
 import Link from "next/link";
+import { GoogleLoginPart } from "./google-login-part";
 
 export function RegisterForm() {
     const [error, setError] = useState(null);
@@ -92,16 +93,18 @@ export function RegisterForm() {
                             ? "Registracija u tijeku..."
                             : "Registriraj se"}
                     </Button>
-                    <p className="text-sm text-center text-muted-foreground">
-                        Već imate račun?{" "}
-                        <Link
-                            href="/login"
-                            className="text-primary hover:underline"
-                        >
-                            Prijavite se
-                        </Link>
-                    </p>
                 </form>
+                <GoogleLoginPart />
+                <p className="text-sm text-center text-muted-foreground">
+                    Već imate račun?{" "}
+                    <Link
+                        href="/login"
+                        className="text-primary hover:underline"
+                    >
+                        Prijavite se
+                    </Link>
+                </p>
+                
             </CardContent>
         </Card>
     );
