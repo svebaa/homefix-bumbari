@@ -95,7 +95,7 @@ export function RegisterForm({ initialError = null }) {
                             : "Registriraj se"}
                     </Button>
                 </form>
-                <GoogleLoginPart />
+                <GoogleLoginPart loading={loading}/>
                 <p className="text-sm text-center text-muted-foreground">
                     Već imate račun?{" "}
                     <Link

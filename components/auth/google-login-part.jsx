@@ -1,14 +1,14 @@
 "use client";
 
-import { login } from "@/lib/actions/auth-actions";
+import { signInWithProvider } from "@/lib/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FaGoogle } from 'react-icons/fa';
 
-export function GoogleLoginPart(parameters) {
+export function GoogleLoginPart({ loading = false }) {
     
     async function handleGoogle() {
-        const res = await login("google");
+        const res = await signInWithProvider("google");
 
         if (res?.error) {
             console.error("OAuth error:", res.error);
@@ -31,9 +31,9 @@ export function GoogleLoginPart(parameters) {
                 </div>
             </div>
             <div>
-            <Button variant="outline" size="lg" className="w-full" onClick={handleGoogle} disabled={parameters.loading}>
+            <Button variant="outline" size="lg" className="w-full" onClick={handleGoogle} disabled={loading}>
                 <FaGoogle />
-                {parameters.loading ? "Prijava u tijeku..." : "Google"}
+                {loading ? "Prijava u tijeku..." : "Google"}
             </Button>
             </div>
         </div>
