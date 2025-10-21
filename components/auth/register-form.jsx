@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/card";
 import { useState } from "react";
 import Link from "next/link";
+import { GoogleLoginPart } from "./google-login-part";
 
-export function RegisterForm() {
-    const [error, setError] = useState(null);
+export function RegisterForm({ initialError = null }) {
+    const [error, setError] = useState(initialError);
     const [loading, setLoading] = useState(false);
 
     async function handleSubmit(formData) {
@@ -47,6 +48,11 @@ export function RegisterForm() {
             </CardHeader>
             <CardContent>
                 <form action={handleSubmit} className="space-y-4">
+                    {error && (
+                        <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md">
+                            {error}
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
@@ -82,26 +88,24 @@ export function RegisterForm() {
                             minLength={6}
                         />
                     </div>
-                    {error && (
-                        <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md">
-                            {error}
-                        </div>
-                    )}
+                    
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading
                             ? "Registracija u tijeku..."
                             : "Registriraj se"}
                     </Button>
-                    <p className="text-sm text-center text-muted-foreground">
-                        Već imate račun?{" "}
-                        <Link
-                            href="/login"
-                            className="text-primary hover:underline"
-                        >
-                            Prijavite se
-                        </Link>
-                    </p>
                 </form>
+                <GoogleLoginPart loading={loading}/>
+                <p className="text-sm text-center text-muted-foreground">
+                    Već imate račun?{" "}
+                    <Link
+                        href="/login"
+                        className="text-primary hover:underline"
+                    >
+                        Prijavite se
+                    </Link>
+                </p>
+                
             </CardContent>
         </Card>
     );
