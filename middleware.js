@@ -1,18 +1,19 @@
 import { updateSession } from './lib/supabase/middleware'
 
 export async function middleware(request) {
+  // Ako je zahtjev za API, preskoči middleware
+  if (request.nextUrl.pathname.startsWith('/tickets') || 
+      request.nextUrl.pathname.startsWith('/auth')) {
+    return await updateSession(request)
+  }
+
+  // Inače, nastavi s middleware-om za stranice
   return await updateSession(request)
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Isključi API rute iz middlewarea
+    '/((?!_next/static|_next/image|favicon.ico|tickets|auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
