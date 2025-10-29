@@ -1,11 +1,12 @@
 "use client"
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
 import { useState } from "react"
 
 export default function ChooseRolePage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -17,6 +18,15 @@ export default function ChooseRolePage() {
       setError("Došlo je do pogreške prilikom odabira uloge.")
       setLoading(false)
     }
+
+    if (role === "predstavnik") {
+      router.push("/register/representative") // ✅ idi na rutu
+    } else if (role === "majstor") {
+      router.push("/register/contractor")
+    } else if (role === "stanar") {
+      router.push("/dashboard")
+    }
+
   }
 
   return (
@@ -38,7 +48,7 @@ export default function ChooseRolePage() {
             Stanar
           </Button>
           <Button onClick={() => handleSelect("predstavnik")} disabled={loading}>
-            <Link href="/register/representative">Predstavnik stanara</Link>
+            Predstavnik stanara
           </Button>
         </div>
 

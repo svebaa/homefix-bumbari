@@ -1,52 +1,85 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-export default function PredstavnikDashboard() {
+export default function KreirajZgraduPage() {
+  const router = useRouter();
+
+  // state varijable
+  const [adresa, setAdresa] = useState("");
+  const [error, setError] = useState(null);
+  const [posBroj, setPosBroj] = useState("");
+
+  // funkcija koja se poziva na submit
+  const handleSubmit = (e) => {
+    e.preventDefault(); // spriječi refresh stranice
+
+    if (!adresa.trim()) {
+      setError("Molimo unesite adresu zgrade.");
+      return;
+    }
+
+    if (!posBroj.trim()) {
+      setError("Molimo unesite poštanski broj.");
+      return;
+    }
+
+    // ovdje bi inače išao poziv prema serveru (Supabase)
+    console.log("Zgrada spremljena:", adresa);
+
+    setAdresa(""); // očisti polje
+    setPosBroj("");
+    setError(null); // očisti grešku
+
+    router.push("/dashboard"); // idi na dashboard nakon uspjeha
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-          Početna stranica
-        </h1>
-        <p className="text-slate-600 dark:text-slate-300 mt-5">
-          Odaberite radnju koju želite izvršiti:
-        </p>
-      </div>
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <CardTitle>Kreiraj novu zgradu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2 text-left">
+              <Label htmlFor="adresa">Adresa zgrade</Label>
+              <Input
+                id="adresa"
+                type="text"
+                placeholder="Ulica Kneza Branimira 5, Zagreb"
+                value={adresa}
+                onChange={(e) => setAdresa(e.target.value)}
+              />
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
-        {/* KARTICA 1 - KREIRAJ ZGRADU */}
-        <Card className="flex flex-col justify-between text-center shadow-md hover:shadow-lg transition">
-          <CardHeader>
-            <CardTitle>Kreiraj novu zgradu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-              Dodajte novu zgradu kojoj ćete biti predstavnik.
-            </p>
-            <Link href="representative\add-building">
-              <Button className="w-full">Kreiraj zgradu</Button>
-            </Link>
-          </CardContent>
-        </Card>
+            <div className="space-y-2 text-left">
+              <Label htmlFor="posBroj">Poštanski broj</Label>
+              <Input
+                id="posBroj"
+                type="text"
+                placeholder="10000"
+                value={posBroj}
+                onChange={(e) => setPosBroj(e.target.value)}
+              />
+            </div>
 
-        {/* KARTICA 2 - DODAJ STANARA */}
-        <Card className="flex flex-col justify-between text-center shadow-md hover:shadow-lg transition">
-          <CardHeader>
-            <CardTitle>Dodaj stanara u zgradu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-              Odaberite postojeću zgradu i dodajte novog stanara.
-            </p>
-            <Link href="representative\add-tenant">
-              <Button className="w-full">Dodaj stanara</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            {error && (
+              <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full">
+              Spremi zgradu
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
   );
 }
