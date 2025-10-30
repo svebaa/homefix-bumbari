@@ -48,18 +48,55 @@ export async function PATCH(request, { params }) {
   if (profileError || !profile) {
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   }
-
-  if (profile.role !== "REPRESENTATIVE") {
+  let isAdmin = false;
+  if (profile.role === "ADMIN") isAdmin = true;
+  if (profile.role !== "REPRESENTATIVE" && !isAdmin) {
     return NextResponse.json(
       { error: "Only representatives can assign tickets." },
       { status: 403 }
     );
   }
 
+  let representative = null;
+
+  if (profile.role === "REPRESENTATIVE") {
+    const { data: repData, error: repError } = await supabase
+      .from("representative")
+      .select("building_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (repError || !repData) {
+      return NextResponse.json(
+        { error: "Representative building info not found" },
+        { status: 404 }
+      );
+    }
+    
+
+    representative = repData; // rezultat u vanjsku varijablu
+      const { data: ticket, error: ticketError } = await supabase
+      .from("ticket")
+      .select("ticket_id, issue_category, building_id")
+      .eq("ticket_id", Number(ticketId))
+      .single();
+
+    if (ticketError || !ticket) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }    
+    if (ticket.building_id !== representative.building_id) {
+     return NextResponse.json(
+      {
+        error: "Representative is not assigned to this building and cannot modify this ticket.",
+      },
+      { status: 403 }
+    );
+  }
+  }
   //Dohvati ticket
   const { data: ticket, error: ticketError } = await supabase
     .from("ticket")
-    .select("ticket_id, issue_category")
+    .select("ticket_id, issue_category, building_id")
     .eq("ticket_id", Number(ticketId))
     .single();
 

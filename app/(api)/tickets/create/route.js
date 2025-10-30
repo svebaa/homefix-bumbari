@@ -32,14 +32,26 @@ export async function POST(request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // ohvati tenant podatke (unit_id i building_id) 
+  // dohvati tenant podatke (unit_id i building_id) 
   const { data: tenant, error: tenantError } = await supabase
     .from("tenant")
     .select("unit_id, building_id")
     .eq("user_id", user.id)
     .single();
 
-  if (tenantError || !tenant) {
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profile")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();  
+  if (profileError || !profile) {
+    return NextResponse.json({ error: "User profile not found" }, { status: 400 });
+  }
+  let isAdmin = false;
+  if (profile.role === "ADMIN") isAdmin = true;
+
+  if ((tenantError || !tenant) && !isAdmin) {
     return NextResponse.json(
       { error: "User is not registered as a tenant" },
       { status: 403 }

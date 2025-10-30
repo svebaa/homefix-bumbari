@@ -1,27 +1,84 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+
+
 export async function GET(request, { params }) {
   const { ticketId } = await params;
 
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    {
+      global: { headers: { Authorization: request.headers.get("Authorization") } },
+    }
   );
 
-  const { data, error } = await supabase
+  // dohvati trenutno prijavljenog korisnika
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // dohvati ticket (samo osnovni podaci)
+  const { data: ticket, error: ticketError } = await supabase
     .from("ticket")
-    .select(", unit:building_id, tenant:created_by(), profile:assigned_to(*)")
+    .select("ticket_id, title, description, issue_category, status, created_by, assigned_to, building_id, unit_id, created_at")
     .eq("ticket_id", ticketId)
     .single();
 
-  if (error) {
-    console.error("Supabase select error:", error);
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  if (ticketError || !ticket) {
+    console.error("Ticket fetch error:", ticketError);
+    return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
   }
 
-  return NextResponse.json(data, { status: 200 });
+  // dohvati profil korisnika (da znamo njegovu ulogu)
+  const { data: profile, error: profileError } = await supabase
+    .from("profile")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+  }
+
+  // ako je representative, provjeri zgradu
+  let isRepresentativeOfBuilding = false;
+  if (profile.role === "REPRESENTATIVE") {
+    const { data: rep, error: repError } = await supabase
+      .from("representative")
+      .select("building_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!repError && rep && rep.building_id === ticket.building_id) {
+      isRepresentativeOfBuilding = true;
+    }
+  }
+
+  // dopušteno ako:
+  const isCreator = ticket.created_by === user.id;
+  const isAssigned = ticket.assigned_to === user.id;
+  let isAdmin = false;
+  if (profile.role === "ADMIN") isAdmin = true;
+
+  if (!isCreator && !isAssigned && !isRepresentativeOfBuilding && !isAdmin) {
+    return NextResponse.json(
+      { error: "You are not authorized to view this ticket." },
+      { status: 403 }
+    );
+  }
+
+  // vrati ticket podatke
+  return NextResponse.json(ticket, { status: 200 });
 }
+
 
 
 
@@ -88,7 +145,7 @@ export async function DELETE(request, { params }) {
     );
   }
 
-  // Sad sigurno briši
+  // Sad briši
   const { error: deleteError } = await supabase
     .from("ticket")
     .delete()
@@ -100,7 +157,7 @@ export async function DELETE(request, { params }) {
   }
 
   return NextResponse.json(
-    { message: `Ticket ${ticketId} deleted successfully.` }, // ← BACKTICKS umjesto navodnika
+    { message: `Ticket ${ticketId} deleted successfully.` }, 
     { status: 200 }
   );
 }
