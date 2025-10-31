@@ -56,6 +56,19 @@ export async function PATCH(request, { params }) {
       { status: 403 }
     );
   }
+  
+
+  //Dohvati ticket
+  const { data: ticket, error: ticketError } = await supabase
+    .from("ticket")
+    .select("ticket_id, issue_category, building_id")
+    .eq("ticket_id", ticketId)
+    .single();
+
+  if (ticketError || !ticket) {
+    return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+  }
+
 
   let representative = null;
 
@@ -75,15 +88,7 @@ export async function PATCH(request, { params }) {
     
 
     representative = repData; // rezultat u vanjsku varijablu
-      const { data: ticket, error: ticketError } = await supabase
-      .from("ticket")
-      .select("ticket_id, issue_category, building_id")
-      .eq("ticket_id", Number(ticketId))
-      .single();
-
-    if (ticketError || !ticket) {
-      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
-    }    
+       
     if (ticket.building_id !== representative.building_id) {
      return NextResponse.json(
       {
@@ -93,17 +98,7 @@ export async function PATCH(request, { params }) {
     );
   }
   }
-  //Dohvati ticket
-  const { data: ticket, error: ticketError } = await supabase
-    .from("ticket")
-    .select("ticket_id, issue_category, building_id")
-    .eq("ticket_id", Number(ticketId))
-    .single();
-
-  if (ticketError || !ticket) {
-    return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
-  }
-
+ 
   //Dohvati majstora
   const { data: worker, error: workerError } = await supabase
     .from("contractor")

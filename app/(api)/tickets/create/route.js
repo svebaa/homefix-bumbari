@@ -48,10 +48,9 @@ export async function POST(request) {
   if (profileError || !profile) {
     return NextResponse.json({ error: "User profile not found" }, { status: 400 });
   }
-  let isAdmin = false;
-  if (profile.role === "ADMIN") isAdmin = true;
 
-  if ((tenantError || !tenant) && !isAdmin) {
+
+  if ((tenantError || !tenant)) {
     return NextResponse.json(
       { error: "User is not registered as a tenant" },
       { status: 403 }
