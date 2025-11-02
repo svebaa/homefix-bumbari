@@ -54,6 +54,28 @@ export function RegisterForm({ initialError = null }) {
                         </div>
                     )}
                     <div className="space-y-2">
+                        <Label htmlFor="firstName">Ime</Label>
+                        <Input
+                            id="firstName"
+                            name="firstName"
+                            type="text"
+                            placeholder="Ivan"
+                            required
+                            disabled={loading}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="lastName">Prezime</Label>
+                        <Input
+                            id="lastName"
+                            name="lastName"
+                            type="text"
+                            placeholder="Horvat"
+                            required
+                            disabled={loading}
+                        />
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <Input
                             id="email"
