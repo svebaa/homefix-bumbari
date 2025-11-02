@@ -15,6 +15,8 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 
+const phoneRegex = /^(\+385\s?)?0?9\d{8}$/;
+
 export default function RegisterContractorPage() {
     const router = useRouter();
     const [form, setForm] = useState({
@@ -23,15 +25,50 @@ export default function RegisterContractorPage() {
         specialization: "",
     });
     const [error, setError] = useState(null);
+    const [phoneError, setPhoneError] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    const validatePhone = (phone) => {
+        if (!phone.trim()) {
+            return "Broj telefona je obavezan";
+        }
+
+        // Makni razmake i crte
+        const cleaned = phone.replace(/[\s-]/g, "");
+
+        // Hrvatski format telefona: 09X slijedi 6 brojeva, ili +385 9X slijedi 7 brojeva
+        if (!phoneRegex.test(cleaned)) {
+            return "Unesite valjan hrvatski broj telefona (npr. 091 555 3333)";
+        }
+
+        return null;
+    };
+
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const value = e.target.value;
+        setForm({ ...form, [e.target.name]: value });
+
+        // Clear phone error when user starts typing
+        if (e.target.name === "phone") {
+            setPhoneError(null);
+        }
+    };
+
+    const handlePhoneBlur = () => {
+        const error = validatePhone(form.phone);
+        setPhoneError(error);
     };
 
     async function handleSubmit(formData) {
         setLoading(true);
         setError(null);
+
+        const phoneValidationError = validatePhone(formData.get("phone"));
+        if (phoneValidationError) {
+            setPhoneError(phoneValidationError);
+            setLoading(false);
+            return;
+        }
 
         const result = await createContractor(formData);
 
@@ -75,7 +112,12 @@ export default function RegisterContractorPage() {
                             placeholder="Primjer: 091 555 3333"
                             value={form.phone}
                             onChange={handleChange}
+                            onBlur={handlePhoneBlur}
+                            className={phoneError ? "border-red-500" : ""}
                         />
+                        {phoneError && (
+                            <p className="text-sm text-red-500">{phoneError}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2">

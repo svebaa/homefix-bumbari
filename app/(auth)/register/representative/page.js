@@ -11,10 +11,53 @@ import { useRouter } from "next/navigation";
 export default function RegisterRepresentativePage() {
     const router = useRouter();
     const [error, setError] = useState(null);
+    const [postalCodeError, setPostalCodeError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [postalCode, setPostalCode] = useState("");
+
+    const validatePostalCode = (code) => {
+        if (!code.trim()) {
+            return "Poštanski broj je obavezan";
+        }
+
+        // Provjeri je li točno 5 znamenki
+        const postalCodeRegex = /^\d{5}$/;
+        if (!postalCodeRegex.test(code.trim())) {
+            return "Poštanski broj mora imati točno 5 znamenki (npr. 10000)";
+        }
+
+        // Provjeri je li u validnom rasponu (10000-99999)
+        const numCode = parseInt(code.trim(), 10);
+        if (numCode < 10000 || numCode > 99999) {
+            return "Unesite valjan poštanski broj (10000-99999)";
+        }
+
+        return null;
+    };
+
+    const handlePostalCodeChange = (e) => {
+        const value = e.target.value;
+        setPostalCode(value);
+        setPostalCodeError(null);
+    };
+
+    const handlePostalCodeBlur = () => {
+        const error = validatePostalCode(postalCode);
+        setPostalCodeError(error);
+    };
+
     async function handleSubmit(formData) {
         setLoading(true);
         setError(null);
+
+        const postalValidationError = validatePostalCode(
+            formData.get("postalCode")
+        );
+        if (postalValidationError) {
+            setPostalCodeError(postalValidationError);
+            setLoading(false);
+            return;
+        }
 
         const result = await createBuilding(formData);
 
@@ -54,8 +97,17 @@ export default function RegisterRepresentativePage() {
                             name="postalCode"
                             type="text"
                             placeholder="10000"
+                            value={postalCode}
+                            onChange={handlePostalCodeChange}
+                            onBlur={handlePostalCodeBlur}
+                            className={postalCodeError ? "border-red-500" : ""}
                             required
                         />
+                        {postalCodeError && (
+                            <p className="text-sm text-red-500">
+                                {postalCodeError}
+                            </p>
+                        )}
                     </div>
 
                     {error && (
