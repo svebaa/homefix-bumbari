@@ -3,6 +3,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
@@ -14,7 +15,11 @@ export async function GET(request) {
 
   if (code) {
     const supabase = await createClient();
+    let cookieStore = await cookies();
+    cookieStore.getAll();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+    let cookieStore2 = await cookies();
+    cookieStore2.getAll();
     if (!error) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
