@@ -9,7 +9,7 @@
 
 # Opis projekta
 
-Ovaj projekt je reultat timskog rada u sklopu projeknog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu.
+Ovaj projekt je rezultat timskog rada u sklopu projeknog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu.
 
 Kratko opisati cilj Vašeg projekta. Vaša motivacija? (Napomena: odgovor nije »Zato što je to bio zadatak i nismo imali ideje za drugo.«). Koji problem rješavate?
 
@@ -23,20 +23,20 @@ Kratko opisati cilj Vašeg projekta. Vaša motivacija? (Napomena: odgovor nije �
 
 # Tehnologije
 
--   **Next.js 15** - React framework
--   **React 19** - UI library
--   **Supabase** - Autentifikacija, baza podataka
--   **Tailwind CSS 4** - CSS framework
--   **shadcn/ui** - React UI komponente bazirane na Radix UI
--   **Lucide React** - Ikone
+- **Next.js 15** - React framework
+- **React 19** - UI library
+- **Supabase** - Autentifikacija, baza podataka
+- **Tailwind CSS 4** - CSS framework
+- **shadcn/ui** - React UI komponente bazirane na Radix UI
+- **Lucide React** - Ikone
 
 # Instalacija
 
 ## Preduvjeti
 
--   Node.js (verzija 18 ili novija)
--   npm ili yarn
--   Supabase račun ([besplatno registriranje](https://supabase.com))
+- Node.js (verzija 18 ili novija)
+- npm ili yarn
+- Supabase račun ([besplatno registriranje](https://supabase.com))
 
 ## Koraci instalacije
 
@@ -76,13 +76,18 @@ Otvorite [http://localhost:3000](http://localhost:3000) u pregledniku
 
 ## Dodatne naredbe
 
--   `npm run build` - Kreira produkcijsku verziju aplikacije
--   `npm run start` - Pokreće produkcijsku verziju
--   `npm run lint` - Pokreće ESLint za provjeru koda
+- `npm run build` - Kreira produkcijsku verziju aplikacije
+- `npm run start` - Pokreće produkcijsku verziju
+- `npm run lint` - Pokreće ESLint za provjeru koda
 
 # Članovi tima
 
-> Popis članova tima/linkovi/ glavni doprinos
+- **Voditelj tima:** **Svebor Vasić** (svebor.vasic@fer.unizg.hr)
+- **Gabriela Perković** (gabriela.perkovic@fer.unizg.hr)
+- **Sara Klarić** (sara.klaric@fer.unizg.hr)
+- **Marko Maslać** (marko.maslac@fer.unizg.hr)
+- **Lovro Milišić** (lovro.milisic@fer.unizg.hr)
+- **Jan Klasić** (jan.klacic@fer.unizg.hr)
 
 # Kontribucije
 
@@ -97,31 +102,35 @@ Kodeks ponašanja skup je provedivih pravila koja služe za jasnu komunikaciju o
 
 # 📝 Licenca
 
-Važeča (1)
+Ovaj projekt koristi **dual-license** pristup:
+
+## Kod - AGPL v3
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
+**Sav programski kod** u ovom repozitoriju licenciran je pod [GNU Affero General Public License v3.0](LICENSE).
+
+AGPL v3 osigurava da:
+
+- Kod ostaje otvoren i dostupan zajednici
+- Sve modifikacije moraju biti dijeljene pod istom licencom
+- Ako pokrenete modificiranu verziju na serveru, morate omogućiti pristup izvornom kodu
+
+## Dokumentacija - CC BY-NC-SA 4.0
+
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
-Ovaj repozitorij sadrži otvoreni obrazovni sadržaji (eng. Open Educational Resources) i licenciran je prema pravilima Creative Commons licencije koja omogućava da preuzmete djelo, podijelite ga s drugima uz
-uvjet da navođenja autora, ne upotrebljavate ga u komercijalne svrhe te dijelite pod istim uvjetima [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License HR][cc-by-nc-sa].
+**Sva dokumentacija** (uključujući wiki sadržaj, README, i obrazovne materijale) licencirana je pod [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: https://creativecommons.org/licenses/by-nc-sa/4.0/deed.hr
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
 
 > ### Napomena:
 >
 > Svi paketi distribuiraju se pod vlastitim licencama.
 > Svi upotrijebleni materijali (slike, modeli, animacije, ...) distribuiraju se pod vlastitim licencama.
-
-[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
-
-[cc-by-nc-sa]: https://creativecommons.org/licenses/by-nc/4.0/deed.hr
-[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
-[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
-
-Orginal [![cc0-1.0][cc0-1.0-shield]][cc0-1.0]
-
-> COPYING: All the content within this repository is dedicated to the public domain under the CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.
->
-> [![CC0-1.0][cc0-1.0-image]][cc0-1.0]
-
-[cc0-1.0]: https://creativecommons.org/licenses/by/1.0/deed.en
-[cc0-1.0-image]: https://licensebuttons.net/l/by/1.0/88x31.png
-[cc0-1.0-shield]: https://img.shields.io/badge/License-CC0--1.0-lightgrey.svg
 
 ### Reference na licenciranje repozitorija
