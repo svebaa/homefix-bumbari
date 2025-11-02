@@ -76,6 +76,7 @@ export default function RegisterContractorPage() {
             console.error(result.error);
             setError(result.error);
             setLoading(false);
+            return;
         }
 
         if (result?.data) {

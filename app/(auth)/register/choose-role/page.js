@@ -26,9 +26,11 @@ export default function ChooseRolePage() {
                 if (result?.error) {
                     setError(result.error);
                     setLoading(false);
+                    return;
                 }
 
                 if (result?.data) {
+                    setLoading(false);
                     router.push(roleMap[role]);
                 }
             } else {
