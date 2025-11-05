@@ -32,22 +32,12 @@ export async function POST(request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // dohvati tenant podatke (unit_id i building_id) 
+  // dohvati tenant podatke (unit_id) 
   const { data: tenant, error: tenantError } = await supabase
     .from("tenant")
-    .select("unit_id, building_id")
+    .select("unit_id")
     .eq("user_id", user.id)
     .single();
-
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profile")
-    .select("role")
-    .eq("user_id", user.id)
-    .single();  
-  if (profileError || !profile) {
-    return NextResponse.json({ error: "User profile not found" }, { status: 400 });
-  }
 
 
   if ((tenantError || !tenant)) {
@@ -66,7 +56,6 @@ export async function POST(request) {
         issue_category,
         title,
         description,
-        building_id: tenant.building_id, // Automatski iz tenant zapisa
         created_by: user.id,
         status: "OPEN",
       },

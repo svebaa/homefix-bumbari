@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
   // dohvati ticket (samo osnovni podaci)
   const { data: ticket, error: ticketError } = await supabase
     .from("ticket")
-    .select("ticket_id, title, description, issue_category, status, created_by, assigned_to, building_id, unit_id, created_at")
+    .select("ticket_id, title, description, issue_category, status, created_by, assigned_to, unit_id, created_at")
     .eq("ticket_id", ticketId)
     .single();
 
@@ -36,6 +36,18 @@ export async function GET(request, { params }) {
     console.error("Ticket fetch error:", ticketError);
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
   }
+
+  // dohvati building_id
+    const { data: unit_building, error: buildingError } = await supabase
+    .from("building_unit")
+    .select("building_id")
+    .eq("unit_id", ticket.unit_id)
+    .single();
+
+  if (buildingError|| !unit_building) {
+    return NextResponse.json({ error: "Related building not found for this unit" }, { status: 400 });
+  }
+  const buildingId = unit_building.building_id;
 
   // dohvati profil korisnika (da znamo njegovu ulogu)
   const { data: profile, error: profileError } = await supabase
@@ -57,7 +69,7 @@ export async function GET(request, { params }) {
       .eq("user_id", user.id)
       .single();
 
-    if (!repError && rep && rep.building_id === ticket.building_id) {
+    if (!repError && rep && rep.building_id === buildingId) {
       isRepresentativeOfBuilding = true;
     }
   }
@@ -99,10 +111,10 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  //Dohvati i building_id iz ticketa
+  //Dohvati ticket
   const { data: ticket, error: selectError } = await supabase
     .from("ticket")
-    .select("created_by, building_id") // ← DODAJ building_id
+    .select("created_by, unit_id")
     .eq("ticket_id", ticketId)
     .single();
 
@@ -110,6 +122,18 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
   }
   
+ // dohvati building_id
+    const { data: unit_building, error: buildingError } = await supabase
+    .from("building_unit")
+    .select("building_id")
+    .eq("unit_id", ticket.unit_id)
+    .single();
+
+  if (buildingError|| !unit_building) {
+    return NextResponse.json({ error: "Related building not found for this unit" }, { status: 400 });
+  }
+  const buildingId = unit_building.building_id;
+
   // Dohvati podatke o profilu
   const { data: profile, error: profileError } = await supabase
     .from("profile")
@@ -121,24 +145,26 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "User profile not found" }, { status: 400 });
   }
 
-  let isRepresentativeOfBuilding = false;
   
-  // Provjeri je li korisnik REPRESENTATIVE ove zgrade
+  // ako je representative, provjeri zgradu
+  let isRepresentativeOfBuilding = false;
   if (profile.role === "REPRESENTATIVE") {
-    const { data: rep } = await supabase
+    const { data: rep, error: repError } = await supabase
       .from("representative")
       .select("building_id")
       .eq("user_id", user.id)
-      .eq("building_id", ticket.building_id) // ← SADA IMAMO ticket.building_id
       .single();
 
-    if (rep) isRepresentativeOfBuilding = true;
+    if (!repError && rep && rep.building_id === buildingId) {
+      isRepresentativeOfBuilding = true;
+    }
   }
-  
-  if (profile.role === "ADMIN") isRepresentativeOfBuilding = true;
+
+  let isAdmin = false;
+  if (profile.role === "ADMIN") isAdmin = true;
 
   // Provjeri ovlasti: creator ILI representative ILI admin
-  if (ticket.created_by !== user.id && !isRepresentativeOfBuilding) {
+  if (ticket.created_by !== user.id && !isRepresentativeOfBuilding && !isAdmin) {
     return NextResponse.json(
       { error: "You are not authorized to delete this ticket." },
       { status: 403 }

@@ -61,13 +61,25 @@ export async function PATCH(request, { params }) {
   //Dohvati ticket
   const { data: ticket, error: ticketError } = await supabase
     .from("ticket")
-    .select("ticket_id, issue_category, building_id")
+    .select("ticket_id, issue_category, unit_id")
     .eq("ticket_id", ticketId)
     .single();
 
   if (ticketError || !ticket) {
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
   }
+
+  // dohvati building_id
+    const { data: unit_building, error: buildingError } = await supabase
+    .from("building_unit")
+    .select("building_id")
+    .eq("unit_id", ticket.unit_id)
+    .single();
+
+  if (buildingError|| !unit_building) {
+    return NextResponse.json({ error: "Related building not found for this unit" }, { status: 400 });
+  }
+  const buildingId = unit_building.building_id;
 
 
   let representative = null;
@@ -85,11 +97,10 @@ export async function PATCH(request, { params }) {
         { status: 404 }
       );
     }
-    
 
     representative = repData; // rezultat u vanjsku varijablu
        
-    if (ticket.building_id !== representative.building_id) {
+    if (buildingId !== representative.building_id) {
      return NextResponse.json(
       {
         error: "Representative is not assigned to this building and cannot modify this ticket.",
