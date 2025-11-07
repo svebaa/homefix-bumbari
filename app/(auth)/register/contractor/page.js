@@ -70,17 +70,35 @@ export default function RegisterContractorPage() {
             return;
         }
 
-        const result = await createContractor(formData);
+        const contractorData = {
+            name: form.name.trim(),
+            phone: form.phone.trim(),
+            specialization: form.specialization,
+        };
 
-        if (result?.error) {
-            console.error(result.error);
-            setError(result.error);
-            setLoading(false);
-            return;
-        }
+        try {
+            const response = await fetch('/api/checkout_sessions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    metadata: {
+                        contractor_data: JSON.stringify(contractorData),
+                    },
+                }),
+            });
 
-        if (result?.data) {
-            router.push("/dashboard");
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error);
+            }
+
+            const { url } = await response.json();
+            window.location.href = url;
+
+        } catch (err) {
+            setError("Greška prilikom pokretanja plaćanja.");
+            console.error(err);
+        } finally {
             setLoading(false);
         }
     }
@@ -161,9 +179,9 @@ export default function RegisterContractorPage() {
                             {error}
                         </div>
                     )}
-
-                    <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Spremanje..." : "Spremi podatke"}
+                    
+                    <Button type="submit" className="w-full" disabled={loading}> 
+                        {loading ? "Plaćanje u tijeku..." : "Uplati članarinu"}
                     </Button>
                 </form>
             </CardContent>
