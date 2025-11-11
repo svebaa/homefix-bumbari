@@ -9,6 +9,7 @@ export async function GET(_request, { params }) {
   const provider = params?.provider;
 
   if (!provider) {
+    console.error("Provider is not set");
     return NextResponse.redirect(
       `${getSiteUrl()}/login?error=${encodeURIComponent(AUTH_ERROR_MESSAGE)}`
     );
@@ -25,6 +26,7 @@ export async function GET(_request, { params }) {
   });
 
   if (error) {
+    console.error("Error signing in with OAuth", error);
     return NextResponse.redirect(
       `${getSiteUrl()}/login?error=${encodeURIComponent(
         error.message ?? AUTH_ERROR_MESSAGE
@@ -33,9 +35,11 @@ export async function GET(_request, { params }) {
   }
 
   if (data?.url) {
+    console.log("Redirecting to OAuth provider", data.url);
     return NextResponse.redirect(data.url, { headers });
   }
 
+  console.error("No URL returned from OAuth provider");
   return NextResponse.redirect(
     `${getSiteUrl()}/login?error=${encodeURIComponent(AUTH_ERROR_MESSAGE)}`
   );
