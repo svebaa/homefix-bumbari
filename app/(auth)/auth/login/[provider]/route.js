@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSiteUrl } from "@/lib/utils/site-url";
 import { cookies } from "next/headers";
+import { parse } from "cookie";
 
 const AUTH_ERROR_MESSAGE =
   "Autentifikacija nije uspjela! Molimo pokušajte ponovno kasnije.";
@@ -18,7 +19,10 @@ export async function GET(request, { params }) {
 
   const headers = new Headers();
   const cookieStore = await cookies();
-  const supabase = await createClient({ headers, request });
+
+  // Create response first so we can pass it to createClient
+  const response = NextResponse.next();
+  const supabase = await createClient({ headers, request, response });
 
   // Debug: log cookies before OAuth
   console.log(
@@ -54,16 +58,21 @@ export async function GET(request, { params }) {
     });
     console.log("Set-Cookie headers:", setCookieHeaders);
 
-    const response = NextResponse.redirect(data.url);
+    // Create redirect response
+    const redirectResponse = NextResponse.redirect(data.url);
 
-    // Copy Set-Cookie headers from supabase client to response
-    headers.forEach((value, key) => {
-      if (key.toLowerCase() === "set-cookie") {
-        response.headers.append(key, value);
-      }
+    // Copy cookies from the response object that was used in createClient
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: cookie.maxAge,
+      });
     });
 
-    return response;
+    return redirectResponse;
   }
 
   console.error("No URL returned from OAuth provider");
