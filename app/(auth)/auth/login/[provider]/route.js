@@ -6,7 +6,7 @@ const AUTH_ERROR_MESSAGE =
   "Autentifikacija nije uspjela! Molimo pokušajte ponovno kasnije.";
 
 export async function GET(_request, { params }) {
-  const provider = params?.provider;
+  const { provider } = await params;
 
   if (!provider) {
     console.error("Provider is not set");
