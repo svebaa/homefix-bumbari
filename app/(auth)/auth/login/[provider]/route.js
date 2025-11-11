@@ -5,7 +5,7 @@ import { getSiteUrl } from "@/lib/utils/site-url";
 const AUTH_ERROR_MESSAGE =
   "Autentifikacija nije uspjela! Molimo pokušajte ponovno kasnije.";
 
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
   const { provider } = await params;
 
   if (!provider) {
@@ -16,7 +16,7 @@ export async function GET(_request, { params }) {
   }
 
   const headers = new Headers();
-  const supabase = await createClient({ headers });
+  const supabase = await createClient({ headers, request });
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
