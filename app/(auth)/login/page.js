@@ -5,6 +5,8 @@ export const metadata = {
   description: 'Prijavite se u svoj HomeFix račun',
 }
 
-export default function LoginPage() {
-  return <LoginForm />
+export default async function LoginPage({searchParams}) {
+  const SearchParams = await searchParams;
+  const error = SearchParams.error || null;
+  return <LoginForm initialError={error} />
 }
