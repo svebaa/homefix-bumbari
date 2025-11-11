@@ -3,7 +3,6 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
@@ -14,27 +13,29 @@ export async function GET(request) {
   }
 
   if (code) {
-    const supabase = await createClient();
-    let cookieStore = await cookies();
-    cookieStore.getAll();
+    const headers = new Headers();
+    const supabase = await createClient({ headers, request });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    let cookieStore2 = await cookies();
-    cookieStore2.getAll();
+
     if (!error) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
+
+      const response = isLocalEnv
+        ? NextResponse.redirect(`${origin}${next}`)
+        : forwardedHost
+        ? NextResponse.redirect(`https://${forwardedHost}${next}`)
+        : NextResponse.redirect(`${origin}${next}`);
+
+      // Copy Set-Cookie headers from supabase client to response
+      headers.forEach((value, key) => {
+        if (key.toLowerCase() === "set-cookie") {
+          response.headers.append(key, value);
+        }
+      });
+
+      return response;
     }
-    console.log(
-      "Autentifikacija nije uspjela! Molimo pokušajte ponovno kasnije.",
-      error
-    );
   }
 
   const response = NextResponse.redirect(
