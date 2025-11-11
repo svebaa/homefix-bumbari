@@ -36,7 +36,16 @@ export async function GET(request, { params }) {
 
   if (data?.url) {
     console.log("Redirecting to OAuth provider", data.url);
-    return NextResponse.redirect(data.url, { headers });
+    const response = NextResponse.redirect(data.url);
+
+    // Copy Set-Cookie headers from supabase client to response
+    headers.forEach((value, key) => {
+      if (key.toLowerCase() === "set-cookie") {
+        response.headers.append(key, value);
+      }
+    });
+
+    return response;
   }
 
   console.error("No URL returned from OAuth provider");
