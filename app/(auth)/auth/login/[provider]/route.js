@@ -29,13 +29,23 @@ export async function GET(request, { params }) {
     "[OAuth Login] Cookies before OAuth:",
     cookieStore.getAll().map((c) => c.name)
   );
+  // Get consistent URL for redirect - prefer NEXT_PUBLIC_SITE_URL, fallback to request origin
+  const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+    : new URL(request.url).origin + "/auth/callback";
+
   console.log("[OAuth Login] Request URL:", request.url);
-  console.log("[OAuth Login] Redirect URL:", `${getSiteUrl()}/auth/callback`);
+  console.log("[OAuth Login] Request origin:", new URL(request.url).origin);
+  console.log(
+    "[OAuth Login] NEXT_PUBLIC_SITE_URL:",
+    process.env.NEXT_PUBLIC_SITE_URL || "(not set)"
+  );
+  console.log("[OAuth Login] Redirect URL:", redirectUrl);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${getSiteUrl()}/auth/callback`,
+      redirectTo: redirectUrl,
     },
   });
 
@@ -111,11 +121,12 @@ export async function GET(request, { params }) {
           }
         });
 
-        // Set defaults - use SameSite=None and Secure for cross-site redirects
+        // Set defaults - FORCE SameSite=None and Secure for OAuth cross-site redirects
+        // This is required because the cookie needs to survive redirect to external OAuth provider
         const options = {
           path: originalOptions.path || "/",
-          sameSite: originalOptions.sameSite || "none",
-          secure: true, // Always use Secure for OAuth cookies
+          sameSite: "none", // ALWAYS use "none" for OAuth cookies to work across redirects
+          secure: true, // Always use Secure for OAuth cookies (required when SameSite=None)
           httpOnly: originalOptions.httpOnly !== false,
         };
         if (originalOptions.maxAge) {
@@ -129,12 +140,29 @@ export async function GET(request, { params }) {
         redirectResponse.cookies.set(name, cookieValue, options);
         cookiesSetCount++;
 
-        // Verify cookie was set
+        // Verify cookie was set and check final header value
         const verifyCookie = redirectResponse.cookies.get(name);
         if (verifyCookie) {
           console.log(
             `[OAuth Login] ✓ Cookie "${name}" successfully set in response`
           );
+          // Get the actual Set-Cookie header to verify SameSite value
+          const setCookieHeader = redirectResponse.headers.get("set-cookie");
+          if (setCookieHeader) {
+            console.log(
+              `[OAuth Login] Final Set-Cookie header: ${setCookieHeader.substring(
+                0,
+                200
+              )}...`
+            );
+            if (setCookieHeader.includes("SameSite=None")) {
+              console.log(`[OAuth Login] ✓ SameSite=None is correctly set`);
+            } else {
+              console.error(
+                `[OAuth Login] ✗ SameSite=None is NOT set! Header: ${setCookieHeader}`
+              );
+            }
+          }
         } else {
           console.error(
             `[OAuth Login] ✗ Failed to set cookie "${name}" in response`
