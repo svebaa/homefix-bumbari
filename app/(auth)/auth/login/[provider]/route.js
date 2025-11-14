@@ -18,17 +18,10 @@ export async function GET(request, { params }) {
   const response = NextResponse.next();
   const supabase = await createClient({ headers, request, response });
 
-  console.log(
-    "process.env.NEXT_PUBLIC_SITE_URL",
-    process.env.NEXT_PUBLIC_SITE_URL
-  );
-
   // Get consistent URL for redirect - prefer NEXT_PUBLIC_SITE_URL, fallback to request origin
   const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL
     ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
     : new URL(request.url).origin + "/auth/callback";
-
-  console.log("redirectUrl", redirectUrl);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
