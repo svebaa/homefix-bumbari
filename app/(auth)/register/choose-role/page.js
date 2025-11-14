@@ -9,7 +9,6 @@ import { createProfile } from "@/lib/actions/profile-actions";
 const roleMap = {
     predstavnik: "/register/representative",
     majstor: "/register/contractor",
-    stanar: "/dashboard",
 };
 
 export default function ChooseRolePage() {
@@ -61,12 +60,6 @@ export default function ChooseRolePage() {
                             disabled={loading}
                         >
                             Majstor
-                        </Button>
-                        <Button
-                            onClick={() => handleSelect("stanar")}
-                            disabled={loading}
-                        >
-                            Stanar
                         </Button>
                         <Button
                             onClick={() => handleSelect("predstavnik")}
