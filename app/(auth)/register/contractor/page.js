@@ -77,9 +77,9 @@ export default function RegisterContractorPage() {
         };
 
         try {
-            const response = await fetch('/api/checkout_sessions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/api/checkout_sessions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     metadata: {
                         contractor_data: JSON.stringify(contractorData),
@@ -94,7 +94,6 @@ export default function RegisterContractorPage() {
 
             const { url } = await response.json();
             window.location.href = url;
-
         } catch (err) {
             setError("Greška prilikom pokretanja plaćanja.");
             console.error(err);
@@ -150,7 +149,7 @@ export default function RegisterContractorPage() {
                             }
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Vodoinstalater, Električar, Tapetar..." />
+                                <SelectValue placeholder="Vodoinstalater, Električar, Stolar..." />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="PLUMBER">
@@ -160,7 +159,7 @@ export default function RegisterContractorPage() {
                                     Električar
                                 </SelectItem>
                                 <SelectItem value="CARPENTER">
-                                    Tapetar
+                                    Stolar
                                 </SelectItem>
                                 <SelectItem value="GENERAL">
                                     Općenito
@@ -179,8 +178,8 @@ export default function RegisterContractorPage() {
                             {error}
                         </div>
                     )}
-                    
-                    <Button type="submit" className="w-full" disabled={loading}> 
+
+                    <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Plaćanje u tijeku..." : "Uplati članarinu"}
                     </Button>
                 </form>
