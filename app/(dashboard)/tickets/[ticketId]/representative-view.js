@@ -235,7 +235,7 @@ export default async function RepresentativeTicketView({ ticketId }) {
       {/* FOTKE*/}
       <Card>
         <CardHeader>
-          <CardTitle>Priložene slike</CardTitle>
+          <CardTitle>Priložene fotografije</CardTitle>
         </CardHeader>
         <CardContent>
           {attachments?.length ? (
@@ -250,7 +250,7 @@ export default async function RepresentativeTicketView({ ticketId }) {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">Nema priloženih slika.</p>
+            <p className="text-muted-foreground">Nema priloženih fotografija.</p>
           )}
         </CardContent>
       </Card>
@@ -298,7 +298,7 @@ export default async function RepresentativeTicketView({ ticketId }) {
                 )}
               </SelectContent>
             </Select>
-            <Button type="submit" disabled={!compatibleContractors.length}>
+            <Button type="submit" disabled={!compatibleContractors.length || isResolved}>
               Spremi
             </Button>
           </form>
