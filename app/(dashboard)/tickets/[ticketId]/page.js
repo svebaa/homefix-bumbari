@@ -28,9 +28,19 @@ export default async function TicketsPage({ params }) {
     return <div className="text-red-600">Profil nije pronađen.</div>;
   }
 
-  if (profile.role === "REPRESENTATIVE") {
-    return <RepresentativeTicketView ticketId={ticketId} />;
-  }
+  
+  const role = profile.role;
 
-  return <div>Vaša uloga nema pristup ovoj stranici.</div>;
+  switch (role) {
+    case "REPRESENTATIVE":
+      return <RepresentativeTicketView ticketId={ticketId} />;
+    case "TENANT":
+      return <p>Ovdje će biti prikaz kvarova za stanare.</p>;
+    case "CONTRACTOR":
+      return <p>Ovdje će biti prikaz kvarova za majstore.</p>;
+    case "ADMIN":
+      return <p>Ovdje će biti prikaz kvarova za admina.</p>;
+    default:
+      return <p>Vaša uloga nema pristup ovoj stranici.</p>;
+  }
 }

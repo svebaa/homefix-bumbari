@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+
 // HR prijevodi enum-a iz baze
 const ISSUE_CATEGORY_LABELS = {
   ELECTRICAL: "ELEKTRIČNI",
@@ -27,19 +28,31 @@ const TICKET_STATUS_LABELS = {
   RESOLVED: "RIJEŠENO",
 };
 
+
+// bagde po statusu
+const badgeVariant = (status) =>
+    status === "OPEN" ? "destructive" :
+    status === "RESOLVED" ? "secondary" :
+    status === "IN_PROGRESS" ? "default" : "default";
+
+
+// pomoćna funkcija za puno ime
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
+
+
+
 
 export default async function RepresentativeView() {
   const supabase = await createClient();
 
-  // 1) Auth
+  // Auth
   const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
   if (userError || !user) return <p className="text-red-600">Niste prijavljeni.</p>;
 
-  // 2) Representative -> building_id
+  // Representative -> building_id
   const { data: repRecord, error: repError } = await supabase
     .from("representative")
     .select("building_id")
@@ -48,7 +61,7 @@ export default async function RepresentativeView() {
   if (repError || !repRecord) return <p className="text-red-600">Niste registrirani kao predstavnik.</p>;
   const buildingId = repRecord.building_id;
 
-  // 3) Jedinice u zgradi
+  // building -> unit_ids
   const { data: units, error: unitsError } = await supabase
     .from("building_unit")
     .select("unit_id")
@@ -69,7 +82,7 @@ export default async function RepresentativeView() {
     );
   }
 
-  // 4) Ticketi (bez joinova) — uključuje title
+  // TICKETS za te unit_ids
   const { data: tickets, error: ticketsError } = await supabase
     .from("ticket")
     .select("ticket_id, title, created_at, issue_category, status, created_by, assigned_to, unit_id")
@@ -91,7 +104,8 @@ export default async function RepresentativeView() {
     );
   }
 
-  // 5) Imena stanara i majstora
+
+  // Imena stanara i majstora
   const tenantIds = Array.from(new Set(tickets.map((t) => t.created_by).filter(Boolean)));
   const contractorIds = Array.from(new Set(tickets.map((t) => t.assigned_to).filter(Boolean)));
 
@@ -109,13 +123,9 @@ export default async function RepresentativeView() {
   const tenantById = new Map((tenants ?? []).map((p) => [p.user_id, fullName(p.first_name, p.last_name)]));
   const contractorById = new Map((contractors ?? []).map((c) => [c.user_id, c.company_name || "—"]));
 
-  // badge varijanta po statusu (shadcn badge)
-  const badgeVariant = (status) =>
-    status === "OPEN" ? "destructive" :
-    status === "RESOLVED" ? "secondary" :
-    status === "IN_PROGRESS" ? "default" : "default";
 
-  // 6) Tablica
+
+  // RENDER TABLICA
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Kvarovi</h1>

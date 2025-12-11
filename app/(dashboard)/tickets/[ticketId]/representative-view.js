@@ -2,10 +2,11 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { assignContractor } from "@/lib/actions/tickets-actions";
+import { getTicket, assignContractor } from "@/lib/actions/tickets-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 // HR prijevodi enum-a iz baze
 const ISSUE_CATEGORY_LABELS = {
@@ -28,9 +29,18 @@ const SPECIALIZATION_LABELS = {
   GENERAL: "OPĆI MAJSTOR",
 };
 
+// badge po statusu 
+ const badgeVariant = (status) =>
+    status === "OPEN" ? "destructive" :
+    status === "RESOLVED" ? "secondary" :
+    status === "IN_PROGRESS" ? "default" : "default";
+
+
+// pomoćna funkcija za puno ime
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
 
-// Stroga kompatibilnost: spec mora odgovarati kategoriji
+
+// Kompatibilnost: spec mora odgovarati kategoriji, GENERAL moze sve
 const specializationToCategory = {
   ELECTRICIAN: "ELECTRICAL",
   PLUMBER: "PLUMBING",
@@ -38,49 +48,29 @@ const specializationToCategory = {
   GENERAL: "GENERAL",
 };
 const isCompatible = (issueCategory, contractorSpecialization) =>
+  contractorSpecialization === "GENERAL" ||
   specializationToCategory[contractorSpecialization] === issueCategory;
+
+
 
 export default async function RepresentativeTicketView({ ticketId }) {
   const supabase = await createClient();
 
-  // 1) Auth
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user) return <p className="text-red-600">Niste prijavljeni.</p>;
+  // Ticket + ovlasti preko server actiona
+  const { error: ticketError, data: ticket } = await getTicket(ticketId);
 
-  // 2) Representative -> building_id
-  const { data: repRecord, error: repError } = await supabase
-    .from("representative")
-    .select("building_id")
-    .eq("user_id", user.id)
-    .single();
-  if (repError || !repRecord) return <p className="text-red-600">Niste registrirani kao predstavnik.</p>;
-  const representativeBuildingId = repRecord.building_id;
-
-  // 3) Ticket
-  const { data: ticket } = await supabase
-    .from("ticket")
-    .select(
-      "ticket_id, title, description, issue_category, status, created_at, created_by, assigned_to, unit_id, comment, resolved_at"
-    )
+ 
+  // Review (ocjena + komentar), ako postoji
+  const { data: reviewRows } = await supabase
+    .from("rating")
+    .select("rating, comment")
     .eq("ticket_id", ticketId)
-    .single();
+    .limit(1);
 
-  if (!ticket) return notFound();
+  const review = reviewRows?.[0] ?? null;
+  const isResolved = ticket.status === "RESOLVED";
 
-  // 4) Provjera zgrade
-  const { data: unit } = await supabase
-    .from("building_unit")
-    .select("building_id")
-    .eq("unit_id", ticket.unit_id)
-    .single();
-  if (!unit || unit.building_id !== representativeBuildingId) {
-    return <p className="text-red-600">Nemate pristup ovom kvaru (druga zgrada).</p>;
-  }
-
-  // 5) Stanar + dodijeljeni majstor (za majstora: profile.email + contractor.company_name/phone/specialization)
+  // Stanar + dodijeljeni majstor (za majstora: profile.email + contractor.company_name/phone/specialization)
   const [{ data: tenant }, { data: assignedContractor }] = await Promise.all([
     ticket.created_by
       ? supabase
@@ -110,14 +100,14 @@ export default async function RepresentativeTicketView({ ticketId }) {
       : Promise.resolve({ data: null }),
   ]);
 
-  // 6) Prilozi + lista svih majstora (za Select)
+  // Fotke
   const [{ data: attachments }, { data: contractorRows, error: contrErr }] = await Promise.all([
     supabase.from("photo").select("photo_id, photo_url").eq("ticket_id", ticketId),
     supabase.from("contractor").select("user_id, company_name, specialization, phone").order("specialization"),
   ]);
   if (contrErr) return <p className="text-red-600">Greška pri dohvaćanju majstora: {contrErr.message}</p>;
 
-  // Dohvati SAMO email za sve majstore (za prikaz u "Dodijeljeni majstor")
+  // Majstori
   const contractorIds = (contractorRows ?? []).map((c) => c.user_id);
   const { data: contractorProfiles, error: profErr } = contractorIds.length
     ? await supabase.from("profile").select("user_id, email").in("user_id", contractorIds)
@@ -127,26 +117,71 @@ export default async function RepresentativeTicketView({ ticketId }) {
   const emailById = new Map((contractorProfiles ?? []).map((p) => [p.user_id, p.email ?? ""]));
   const contractors = (contractorRows ?? []).map((c) => ({ ...c, email: emailById.get(c.user_id) ?? "" }));
 
-  // Filtriraj kompatibilne po kategoriji (strogo mapiranje)
+  // Kompatibilni majstori
   const compatibleContractors = contractors.filter((c) =>
     isCompatible(ticket.issue_category, c.specialization)
   );
 
+
   return (
     <div className="space-y-8">
-      {/* Naslov i status */}
+      {/* Naslov i status gore */}
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">
           Kvar #{ticket.ticket_id} — {ticket.title || "Bez naslova"}
         </h1>
-        <span className="inline-flex items-center rounded-md border px-2 py-1 text-sm">
-          {TICKET_STATUS_LABELS[ticket.status] ?? ticket.status}
-        </span>
+
+        <div className="flex flex-col items-end gap-1">
+          
+                                   <Badge variant={badgeVariant(ticket.status)}>
+                          {TICKET_STATUS_LABELS[ticket.status] ?? ticket.status}
+                        </Badge>
+          
+        </div>
       </div>
 
-      {/* Informacije */}
+      {/* INFORMACIJE + rating u gornjem desnom kutu kartice */}
       <Card>
-        <CardHeader><CardTitle>Informacije</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <CardTitle>Informacije</CardTitle>
+
+            <div className="flex flex-col items-end gap-2">
+              {/* Zvjezdice */}
+              <div className="flex items-center gap-1 text-sm">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const filled = review?.rating && star <= review.rating;
+                  return (
+                    <span
+                      key={star}
+                      className={filled ? "text-yellow-500" : "text-slate-300"}
+                    >
+                      ★
+                    </span>
+                  );
+                })}
+                {review?.rating && (
+                  <span className="text-xs text-slate-500 ml-1">
+                    {review.rating}/5
+                  </span>
+                )}
+              </div>
+
+              {/* Komentar recenzije odmah ispod zvjezdica */}
+              {isResolved && review?.comment && (
+                <details className="inline-block text-right">
+                  <summary className="inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-xs text-slate-700 bg-slate-50">
+                    💬 <span>Komentar</span>
+                  </summary>
+                  <div className="mt-2 max-w-xs rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                    {review.comment}
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+
         <CardContent className="space-y-3">
           <div>
             <span className="font-medium">Stanar: </span>
@@ -157,49 +192,59 @@ export default async function RepresentativeTicketView({ ticketId }) {
               </>
             ) : "—"}
           </div>
+
           <div>
             <span className="font-medium">Kategorija: </span>
             {ISSUE_CATEGORY_LABELS[ticket.issue_category] ?? ticket.issue_category}
           </div>
+
           <div>
             <span className="font-medium">Opis: </span>
-            {ticket.description || "—"}
+            {ticket.description || "/"}
           </div>
+
           <div>
             <span className="font-medium">Dodijeljeni majstor: </span>
             {assignedContractor ? (
               <>
                 {assignedContractor.company_name}{" "}
                 {assignedContractor.phone && <>{assignedContractor.phone} </>}
-                {SPECIALIZATION_LABELS[assignedContractor.specialization] ?? assignedContractor.specialization}{" "}
+                {SPECIALIZATION_LABELS[assignedContractor.specialization] ??
+                  assignedContractor.specialization}{" "}
                 <span className="text-slate-500">({assignedContractor.email})</span>
               </>
             ) : (
               "-"
             )}
           </div>
-          <div className="text-sm text-muted-foreground space-y-1">
-            <div>
-              Prijavljeno: {new Date(ticket.created_at).toLocaleString()}
-            </div>
-            {ticket.resolved_at && (
-              <div>
-                Riješeno: {new Date(ticket.resolved_at).toLocaleString()}
-              </div>
-            )}
+
+          <div>
+            <span className="font-medium">Komentar majstora: </span>
+            {ticket.comment ? ticket.comment : "/"}
           </div>
 
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div>Prijavljeno: {new Date(ticket.created_at).toLocaleString()}</div>
+            {ticket.resolved_at && (
+              <div>Riješeno: {new Date(ticket.resolved_at).toLocaleString()}</div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Priložene slike */}
+      {/* FOTKE*/}
       <Card>
-        <CardHeader><CardTitle>Priložene slike</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Priložene slike</CardTitle>
+        </CardHeader>
         <CardContent>
           {attachments?.length ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               {attachments.map((a) => (
-                <div key={a.photo_id} className="relative aspect-[4/3] overflow-hidden rounded-xl border">
+                <div
+                  key={a.photo_id}
+                  className="relative aspect-[4/3] overflow-hidden rounded-xl border"
+                >
                   <Image src={a.photo_url} alt="Prilog" fill className="object-cover" />
                 </div>
               ))}
@@ -210,9 +255,11 @@ export default async function RepresentativeTicketView({ ticketId }) {
         </CardContent>
       </Card>
 
-      {/* Dodjela majstora */}
+      {/* ASSIGN MAJSTORA*/}
       <Card>
-        <CardHeader><CardTitle>Dodjela majstora</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Dodjela majstora</CardTitle>
+        </CardHeader>
         <CardContent>
           <form
             action={async (formData) => {
@@ -222,13 +269,24 @@ export default async function RepresentativeTicketView({ ticketId }) {
             }}
             className="flex flex-col items-start gap-3 sm:flex-row"
           >
-            <Select name="contractorId" defaultValue={assignedContractor?.user_id ?? undefined}>
+            <Select
+              name="contractorId"
+              defaultValue={assignedContractor?.user_id ?? undefined}
+            >
               <SelectTrigger className="w-80">
-                <SelectValue placeholder={compatibleContractors.length ? "Odaberi majstora" : "Nema kompatibilnih majstora"} />
+                <SelectValue
+                  placeholder={
+                    compatibleContractors.length
+                      ? "Odaberi majstora"
+                      : "Nema kompatibilnih majstora"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {compatibleContractors.length === 0 ? (
-                  <div className="px-3 py-1 text-sm text-muted-foreground">Nema kompatibilnih majstora</div>
+                  <div className="px-3 py-1 text-sm text-muted-foreground">
+                    Nema kompatibilnih majstora
+                  </div>
                 ) : (
                   compatibleContractors.map((c) => (
                     <SelectItem key={c.user_id} value={c.user_id}>
@@ -240,7 +298,9 @@ export default async function RepresentativeTicketView({ ticketId }) {
                 )}
               </SelectContent>
             </Select>
-            <Button type="submit" disabled={!compatibleContractors.length}>Spremi</Button>
+            <Button type="submit" disabled={!compatibleContractors.length}>
+              Spremi
+            </Button>
           </form>
         </CardContent>
       </Card>
