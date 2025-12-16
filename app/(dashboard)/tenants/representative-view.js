@@ -1,4 +1,3 @@
-// app/(dashboard)/tenants/representative-view.js
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

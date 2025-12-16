@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+// Slanje pozivnice ide preko servera
 import { inviteTenantByEmail } from "@/lib/actions/tenants-actions";
 
 export default function InviteTenantDialog() {
@@ -34,6 +35,7 @@ export default function InviteTenantDialog() {
   };
 
   return (
+    // Modal se otvara i zatvara preko React statea
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">Pozovi</Button>

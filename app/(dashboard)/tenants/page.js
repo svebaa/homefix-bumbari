@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TenantsPage() {
   const supabase = await createClient();
-
+  // Dohvaćanje trenutno prijavljenog korisnika
   const {
     data: { user },
     error,
@@ -13,6 +13,7 @@ export default async function TenantsPage() {
 
   if (error || !user) return <p className="text-red-600">Niste prijavljeni.</p>;
 
+  // Dohvaćanje profila korisnika kako bi se provjerila uloga
   const { data: profile } = await supabase
     .from("profile")
     .select("role")
@@ -21,11 +22,10 @@ export default async function TenantsPage() {
 
   if (!profile) return <p className="text-red-600">Profil nije pronađen.</p>;
 
+  // Prikaz sadržaja ovisno o ulozi korisnika
   switch (profile.role) {
     case "REPRESENTATIVE":
       return <RepresentativeTenantsView />;
-    case "TENANT":
-      return <p>Ovdje će biti prikaz stanara za stanare (ako bude potrebno).</p>;
     case "ADMIN":
       return <p>Ovdje će biti prikaz stanara za admina.</p>;
     default:
