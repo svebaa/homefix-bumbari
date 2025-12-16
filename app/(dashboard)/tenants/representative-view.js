@@ -7,6 +7,13 @@ import InviteTenantDialog from "./invite-tenant-dialog";
 
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
 
+const formatUnit = (u) => {
+  if (!u) return "—";
+  const label = u.label ?? "—";
+  const floor = u.floor ?? null;
+  return floor === null ? label : `${label} (kat ${floor})`;
+};
+
 export default async function RepresentativeTenantsView() {
   const supabase = await createClient();
 
@@ -14,7 +21,7 @@ export default async function RepresentativeTenantsView() {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) return <p className="text-red-600">Niste prijavljeni.</p>;
 
-  // representative -> building_id
+  // dohvat building_id
   const { data: repRecord, error: repError } = await supabase
     .from("representative")
     .select("building_id")
@@ -27,10 +34,10 @@ export default async function RepresentativeTenantsView() {
 
   const buildingId = repRecord.building_id;
 
-  // building -> unit_ids
+  // dohvat unit_id, label, floor
   const { data: units, error: unitsError } = await supabase
     .from("building_unit")
-    .select("unit_id")
+    .select("unit_id, label, floor")
     .eq("building_id", buildingId);
 
   if (unitsError) {
@@ -38,6 +45,8 @@ export default async function RepresentativeTenantsView() {
   }
 
   const unitIds = (units ?? []).map((u) => u.unit_id);
+
+  const unitById = new Map((units ?? []).map((u) => [u.unit_id, { label: u.label, floor: u.floor }]));
 
   if (!unitIds.length) {
     return (
@@ -56,7 +65,7 @@ export default async function RepresentativeTenantsView() {
     );
   }
 
-  // tenant rows (user_id, unit_id)
+  // dohvat stanara za stanove
   const { data: tenantRows, error: tenantErr } = await supabase
     .from("tenant")
     .select("user_id, unit_id")
@@ -68,7 +77,7 @@ export default async function RepresentativeTenantsView() {
 
   const tenantUserIds = Array.from(new Set((tenantRows ?? []).map((t) => t.user_id).filter(Boolean)));
 
-  // profiles for those users
+  // profili stanara
   const { data: profiles, error: profErr } = tenantUserIds.length
     ? await supabase.from("profile").select("user_id, first_name, last_name, email").in("user_id", tenantUserIds)
     : { data: [], error: null };
@@ -79,15 +88,18 @@ export default async function RepresentativeTenantsView() {
 
   const profileById = new Map((profiles ?? []).map((p) => [p.user_id, p]));
 
-  // assemble rows
+  // spajanje redova
   const rows = (tenantRows ?? []).map((t) => {
     const p = profileById.get(t.user_id);
+    const unitMeta = unitById.get(t.unit_id) ?? null;
+
     return {
       user_id: t.user_id,
       first_name: p?.first_name ?? null,
       last_name: p?.last_name ?? null,
       email: p?.email ?? null,
       unit_id: t.unit_id,
+      unit: unitMeta, 
     };
   });
 
@@ -125,7 +137,7 @@ export default async function RepresentativeTenantsView() {
                       <TableCell>{r.first_name ?? "—"}</TableCell>
                       <TableCell>{r.last_name ?? "—"}</TableCell>
                       <TableCell>{r.email ?? "—"}</TableCell>
-                      <TableCell>{r.unit_id ?? "—"}</TableCell>
+                      <TableCell>{formatUnit(r.unit)}</TableCell>
                     </TableRow>
                   ))
                 )}
