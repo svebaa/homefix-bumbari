@@ -18,19 +18,28 @@ export default async function DashboardLayout({ children }) {
                                 HomeFix
                             </Link>
                             <nav className="hidden md:flex gap-6">
-                                <Link
-                                    href="/dashboard"
-                                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                                >
-                                    Dashboard
-                                </Link>
-                                <Link
-                                    href="/dashboard/profile"
-                                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                                >
-                                    Profil
-                                </Link>
+                            <Link
+                                href="/dashboard"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                            >
+                                Dashboard
+                            </Link>
+
+                            <Link
+                                href="/tickets"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                            >
+                                Kvarovi
+                            </Link>
+
+                            <Link
+                                href="/dashboard/profile"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                            >
+                                Profil
+                            </Link>
                             </nav>
+
                         </div>
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-slate-600 dark:text-slate-300">
