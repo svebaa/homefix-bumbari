@@ -38,6 +38,12 @@ export default async function DashboardLayout({ children }) {
                             >
                                 Profil
                             </Link>
+                            <Link
+                                href="/tenants"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                >
+                                Stanari
+                            </Link>
                             </nav>
 
                         </div>
