@@ -58,7 +58,7 @@ export default async function RepresentativeTicketView({ ticketId }) {
 
   // Ticket + ovlasti preko server actiona
   const { error: ticketError, data: ticket } = await getTicket(ticketId);
-
+  if (ticketError || !ticket) return notFound();
  
   // Review (ocjena + komentar), ako postoji
   const { data: reviewRows } = await supabase
@@ -270,8 +270,9 @@ export default async function RepresentativeTicketView({ ticketId }) {
             className="flex flex-col items-start gap-3 sm:flex-row"
           >
             <Select
+              key={ticket.assigned_to ?? "no-assignee"}             
               name="contractorId"
-              defaultValue={assignedContractor?.user_id ?? undefined}
+              defaultValue={ticket.assigned_to ?? ""}              
             >
               <SelectTrigger className="w-80">
                 <SelectValue

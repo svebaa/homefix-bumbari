@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 // HR prijevodi enum-a iz baze
 const ISSUE_CATEGORY_LABELS = {
   ELECTRICAL: "ELEKTRIČNI",
-  PLUMBING: "VODINSTALACIJA",
+  PLUMBING: "VODOINSTALACIJA",
   CARPENTRY: "STOLARIJA",
   GENERAL: "OPĆENITO",
 };
