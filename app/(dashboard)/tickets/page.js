@@ -1,4 +1,5 @@
 // app/tickets/page.js
+import ContractorView from "./contractor-view";
 import { createClient } from "@/lib/supabase/server";
 import RepresentativeView from "./representative-view";
 
@@ -35,7 +36,7 @@ export default async function TicketsPage() {
     case "TENANT":
       return <p>Ovdje će biti prikaz kvarova za stanare.</p>;
     case "CONTRACTOR":
-      return <p>Ovdje će biti prikaz kvarova za majstore.</p>;
+      return <ContractorView />;
     case "ADMIN":
       return <p>Ovdje će biti prikaz kvarova za admina.</p>;
     default:

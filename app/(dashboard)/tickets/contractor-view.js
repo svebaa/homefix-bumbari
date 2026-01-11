@@ -1,0 +1,156 @@
+import Link from "next/link";
+import { getTicketsForContractor } from "@/lib/actions/tickets-actions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+
+// HR prijevodi enum-a iz baze
+const ISSUE_CATEGORY_LABELS = {
+  ELECTRICAL: "ELEKTRIČNI",
+  PLUMBING: "VODOINSTALACIJA",
+  CARPENTRY: "STOLARIJA",
+  GENERAL: "OPĆENITO",
+};
+
+const TICKET_STATUS_LABELS = {
+  OPEN: "OTVORENO",
+  IN_PROGRESS: "U TIJEKU",
+  RESOLVED: "ZAVRŠENO",
+};
+
+// boje po statusu (OPEN zeleno, IN_PROGRESS narančasto, RESOLVED crveno)
+const statusBadgeClass = (status) => {
+  switch (status) {
+    case "OPEN":
+      return "bg-green-100 text-black border border-green-200";
+    case "IN_PROGRESS":
+      return "bg-orange-100 text-black border border-orange-200";
+    case "RESOLVED":
+      return "bg-red-100 text-black border border-red-200";
+    default:
+      return "bg-slate-100 text-slate-800 border border-slate-200";
+  }
+};
+
+export default async function ContractorView() {
+  // Dohvat podataka (funkcionalnost ostaje ista)
+  const { data: tickets, error } = await getTicketsForContractor();
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-semibold">Kvarovi</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Moji kvarovi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-red-600">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!tickets || tickets.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-semibold">Kvarovi</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Moji kvarovi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Trenutno nemate dodijeljenih kvarova.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">Kvarovi</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Dodijeljeni kvarovi</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[80px] text-center">#ID</TableHead>
+                  <TableHead className="text-center">Naslov</TableHead>
+                  <TableHead className="text-center">Kategorija</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-center">Datum</TableHead>
+                  <TableHead className="text-center">Akcije</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {tickets.map((t) => {
+                  const isResolved = t.status === "RESOLVED";
+                  const dateLabel = isResolved ? "Zatvoreno" : "Otvoreno";
+                  const dateValue = isResolved ? t.resolved_at : t.created_at;
+
+                  return (
+                    <TableRow key={t.ticket_id}>
+                      <TableCell className="text-sm text-slate-500 text-center">
+                        {t.ticket_id}
+                      </TableCell>
+
+                      <TableCell className="max-w-[280px] truncate text-center">
+                        {t.title ?? "—"}
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        {ISSUE_CATEGORY_LABELS[t.issue_category] ?? t.issue_category}
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <Badge className={statusBadgeClass(t.status)}>
+                          {TICKET_STATUS_LABELS[t.status] ?? t.status}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="whitespace-nowrap text-center">
+                        <div>
+                          <div className="font-medium">{dateLabel}</div>
+                          <div className="text-xs text-slate-500">
+                            {dateValue
+                              ? new Date(dateValue).toLocaleDateString("hr-HR")
+                              : "—"}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/tickets/${t.ticket_id}`}>Detalji</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
