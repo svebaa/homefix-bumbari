@@ -1,5 +1,6 @@
 // app/(dashboard)/profile/contractor-view.js
 import { getContractorByUserId, checkMembership } from "@/lib/actions/contractor-actions";
+import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -12,10 +13,59 @@ const SPECIALIZATION_LABELS = {
 };
 
 export default async function ContractorProfileView({ profile }) {
+  const supabase = await createClient();
+
   const [{ data: contractor, error: contractorError }, membership] = await Promise.all([
     getContractorByUserId(profile.user_id),
     checkMembership(profile.user_id),
   ]);
+
+  // --- OCJENE (rating) ---
+  // Dohvati tickete dodijeljene ovom majstoru, pa ocjene za te tickete
+  let ratings = [];
+  let ratingsError = null;
+  let avgRating = null;
+
+  if (!contractorError && contractor?.user_id) {
+    const { data: ticketsForContractor, error: ticketsError } = await supabase
+      .from("ticket")
+      .select("ticket_id, title")
+      .eq("assigned_to", contractor.user_id);
+
+    if (ticketsError) {
+      ratingsError = ticketsError.message;
+    } else {
+      const ticketIds = (ticketsForContractor ?? []).map((t) => t.ticket_id);
+
+      if (ticketIds.length > 0) {
+        const { data: ratingRows, error: ratingError } = await supabase
+          .from("rating")
+          .select("rating_id, ticket_id, rating, comment, created_at")
+          .in("ticket_id", ticketIds)
+          .order("created_at", { ascending: false });
+
+        if (ratingError) {
+          ratingsError = ratingError.message;
+        } else {
+          // mapiranje ticket_id -> title da možemo prikazati "za koji kvar"
+          const ticketTitleById = new Map(
+            (ticketsForContractor ?? []).map((t) => [t.ticket_id, t.title ?? `#${t.ticket_id}`])
+          );
+
+          ratings =
+            (ratingRows ?? []).map((r) => ({
+              ...r,
+              ticket_title: ticketTitleById.get(r.ticket_id) ?? `#${r.ticket_id}`,
+            })) ?? [];
+
+          if (ratings.length > 0) {
+            const sum = ratings.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
+            avgRating = sum / ratings.length;
+          }
+        }
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -40,9 +90,7 @@ export default async function ContractorProfileView({ profile }) {
             </p>
             <p className="text-sm">
               <span className="font-medium">Email:</span>{" "}
-              <span className="text-slate-600 dark:text-slate-300">
-                {profile.email}
-              </span>
+              <span className="text-slate-600 dark:text-slate-300">{profile.email}</span>
             </p>
             <p className="text-sm">
               <span className="font-medium">Uloga:</span>{" "}
@@ -107,12 +155,62 @@ export default async function ContractorProfileView({ profile }) {
                   </span>
                 </p>
 
-                {/* Ocjene - MVP placeholder */}
-                <div className="pt-2">
+                {/* OCJENE */}
+                <div className="pt-4 space-y-2">
                   <p className="text-sm font-medium">Ocjene</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Ocjene će biti prikazane ovdje (kad dodate model/tablicu).
-                  </p>
+
+                  {ratingsError ? (
+                    <p className="text-sm text-red-600">Greška pri dohvaćanju ocjena: {ratingsError}</p>
+                  ) : ratings.length === 0 ? (
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                      Još nemate ocjena.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge>
+                          Prosjek: {avgRating ? avgRating.toFixed(1) : "—"} / 5
+                        </Badge>
+                        <span className="text-sm text-slate-600 dark:text-slate-300">
+                          ({ratings.length} ocjena)
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {ratings.map((r) => (
+                          <div
+                            key={r.rating_id}
+                            className="rounded-md border p-3"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="text-sm font-medium">
+                                Kvar #{r.ticket_id} — {r.ticket_title}
+                              </div>
+                              <Badge variant="secondary">
+                                {Number(r.rating)}/5
+                              </Badge>
+                            </div>
+
+                            {r.comment ? (
+                              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+                                {r.comment}
+                              </p>
+                            ) : (
+                              <p className="mt-2 text-sm text-slate-500">
+                                (bez komentara)
+                              </p>
+                            )}
+
+                            <p className="mt-2 text-xs text-slate-500">
+                              {r.created_at
+                                ? new Date(r.created_at).toLocaleDateString("hr-HR")
+                                : "—"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}

@@ -200,9 +200,10 @@ export default async function ContractorTicketView({ ticketId }) {
 
           <div>
             <p className="text-sm font-medium">Foto</p>
-            {photos?.data?.length ? (
+
+            {Array.isArray(photos) && photos.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-3">
-                {photos.data.map((p) => (
+                {photos.map((p) => (
                   <a
                     key={p.photo_id}
                     href={p.photo_url}
@@ -214,7 +215,7 @@ export default async function ContractorTicketView({ ticketId }) {
                     <img
                       src={p.photo_url}
                       alt={`photo-${p.photo_id}`}
-                      className="h-20 w-20 rounded-md border object-cover"
+                      className="h-30 w-30 rounded-md border object-cover"
                     />
                   </a>
                 ))}
@@ -223,6 +224,7 @@ export default async function ContractorTicketView({ ticketId }) {
               <p className="text-sm text-slate-500 mt-1">Nema priloženih slika.</p>
             )}
           </div>
+
         </CardContent>
       </Card>
 
