@@ -31,27 +31,42 @@ export default async function DashboardLayout({ children }) {
                                 HomeFix
                             </Link>
                             <nav className="hidden md:flex gap-6">
+                            <Link
+                                href="/dashboard"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                            >
+                                Dashboard
+                            </Link>
+
+                            <Link
+                                href="/tickets"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                            >
+                                Kvarovi
+                            </Link>
+
+                            <Link
+                                href="/dashboard/profile"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                            >
+                                Profil
+                            </Link>
+                            <Link
+                                href="/tenants"
+                                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                >
+                                Stanari
+                            </Link>
+                            {isTenant && (
                                 <Link
-                                    href="/dashboard"
+                                    href="/tickets"
                                     className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                                 >
-                                    Dashboard
+                                    Prijava kvarova
                                 </Link>
-                                {isTenant && (
-                                    <Link
-                                        href="/tickets"
-                                        className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                                    >
-                                        Prijava kvarova
-                                    </Link>
-                                )}
-                                <Link
-                                    href="/dashboard/profile"
-                                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                                >
-                                    Profil
-                                </Link>
+                            )}
                             </nav>
+
                         </div>
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-slate-600 dark:text-slate-300">

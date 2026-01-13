@@ -5,7 +5,7 @@ export async function middleware(request) {
 }
 export const config = {
     matcher: [
-        // Isključi API rute iz middlewarea
-        "/((?!_next/static|_next/image|favicon.ico|tickets|auth|buildings|debug|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+        // Isključi API rute, static fajlove, i slike iz middlewarea
+        "/((?!api|_next/static|_next/image|favicon.ico|tickets|auth|buildings|debug|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
     ],
 };
