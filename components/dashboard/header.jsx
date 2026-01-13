@@ -19,6 +19,7 @@ const NAV_CONFIG = {
         { href: "/dashboard", label: "Dashboard" },
         { href: "/tickets", label: "Kvarovi" },
         { href: "/tenants", label: "Stanari" },
+        { href: "/reports", label: "Izvještaji" },
     ],
 };
 
