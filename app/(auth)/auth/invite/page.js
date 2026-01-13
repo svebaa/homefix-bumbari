@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function InviteCallbackPage() {
+function InviteCallbackContent() {
     const searchParams = useSearchParams();
     const [message, setMessage] = useState("Verificiram pozivnicu...");
     const supabase = createClient();
@@ -113,5 +113,13 @@ export default function InviteCallbackPage() {
             <h1 className="text-2xl font-bold mb-4">Obrada pozivnice</h1>
             <p>{message}</p>
         </div>
+    );
+}
+
+export default function InviteCallbackPage() {
+    return (
+        <Suspense fallback={<div className="flex min-h-screen flex-col items-center justify-center p-4"><p>Učitavanje...</p></div>}>
+            <InviteCallbackContent />
+        </Suspense>
     );
 }
