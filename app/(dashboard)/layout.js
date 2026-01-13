@@ -1,9 +1,22 @@
 import { getUser, logout } from "@/lib/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({ children }) {
     const user = await getUser();
+    
+    let isTenant = false;
+    if (user) {
+        const supabase = await createClient();
+        const { data: profile } = await supabase
+            .from("profile")
+            .select("role")
+            .eq("user_id", user.id)
+            .single();
+        
+        isTenant = profile?.role === "TENANT";
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -44,6 +57,14 @@ export default async function DashboardLayout({ children }) {
                                 >
                                 Stanari
                             </Link>
+                            {isTenant && (
+                                <Link
+                                    href="/tickets"
+                                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                                >
+                                    Prijava kvarova
+                                </Link>
+                            )}
                             </nav>
 
                         </div>
