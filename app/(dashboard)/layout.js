@@ -46,7 +46,7 @@ export default async function DashboardLayout({ children }) {
                             </Link>
 
                             <Link
-                                href="/dashboard/profile"
+                                href="/profile"
                                 className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                             >
                                 Profil

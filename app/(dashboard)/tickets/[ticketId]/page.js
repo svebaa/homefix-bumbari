@@ -1,6 +1,7 @@
 // app/(dashboard)/tickets/[ticketId]/page.js
 import { createClient } from "@/lib/supabase/server";
 import RepresentativeTicketView from "./representative-view";
+import ContractorTicketView from "./contractor-view";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export default async function TicketsPage({ params }) {
     case "TENANT":
       return <p>Ovdje će biti prikaz kvarova za stanare.</p>;
     case "CONTRACTOR":
-      return <p>Ovdje će biti prikaz kvarova za majstore.</p>;
+      return <ContractorTicketView ticketId={ticketId} />;
     case "ADMIN":
       return <p>Ovdje će biti prikaz kvarova za admina.</p>;
     default:
