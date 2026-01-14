@@ -1,6 +1,11 @@
 // app/(dashboard)/tickets/[ticketId]/contractor-view.js
 import { createClient } from "@/lib/supabase/server";
-import { getTicket, getTicketPhotos, updateTicketComment, updateTicketStatus } from "@/lib/actions/tickets-actions";
+import {
+  getTicket,
+  getTicketPhotos,
+  updateTicketComment,
+  updateTicketStatus,
+} from "@/lib/actions/tickets-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +25,6 @@ const statusBadgeClass = (status) => {
   }
 };
 
-
 const ISSUE_CATEGORY_LABELS = {
   ELECTRICAL: "ELEKTRIČNI",
   PLUMBING: "VODOINSTALACIJA",
@@ -34,17 +38,9 @@ const TICKET_STATUS_LABELS = {
   RESOLVED: "ZAVRŠENO",
 };
 
-const badgeVariant = (status) =>
-  status === "OPEN"
-    ? "destructive"
-    : status === "RESOLVED"
-    ? "secondary"
-    : "default";
-
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
 
 export default async function ContractorTicketView({ ticketId }) {
-  // 1) ticket (ovdje se čita ticket + radi provjera ovlasti)
   const { data: ticket, error } = await getTicket(ticketId);
 
   if (error || !ticket) {
@@ -54,28 +50,41 @@ export default async function ContractorTicketView({ ticketId }) {
           <CardTitle>Kvar</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-red-600">{error ?? "Ticket nije pronađen."}</p>
+          <p className="text-sm text-red-600">
+            {error ?? "Ticket nije pronađen."}
+          </p>
         </CardContent>
       </Card>
     );
   }
 
-  // 2) dodatni podaci za prikaz (lokacija + prijavitelj + slike)
   const supabase = await createClient();
 
-  const [{ data: photos }, { data: reporter }, { data: unit }] = await Promise.all([
+  const [{ data: photos }, reporterRes, unitRes, reviewRes] = await Promise.all([
     getTicketPhotos(ticketId),
+
     supabase
       .from("profile")
       .select("first_name, last_name, email, user_id")
       .eq("user_id", ticket.created_by)
       .single(),
+
     supabase
       .from("building_unit")
       .select("unit_id, label, floor, building_id")
       .eq("unit_id", ticket.unit_id)
       .single(),
+
+    supabase
+      .from("rating")
+      .select("rating, comment")
+      .eq("ticket_id", ticketId)
+      .limit(1),
   ]);
+
+  const reporter = reporterRes?.data ?? null;
+  const unit = unitRes?.data ?? null;
+  const review = reviewRes?.data?.[0] ?? null;
 
   let building = null;
   if (unit?.building_id) {
@@ -87,16 +96,19 @@ export default async function ContractorTicketView({ ticketId }) {
     building = data ?? null;
   }
 
-  const reporterName = reporter ? fullName(reporter.first_name, reporter.last_name) : "—";
-  const reporterEmail = reporter?.email ?? "—";
+  const tenantName = reporter
+    ? fullName(reporter.first_name, reporter.last_name)
+    : "—";
+  const tenantEmail = reporter?.email ?? "—";
 
-  const locationLabel = unit
+  const addressLine = building?.address
+    ? `${building.address}${building.postal_code ? ` (${building.postal_code})` : ""}`
+    : "—";
+
+  const unitLine = unit
     ? `${unit.label ?? `Stan ${unit.unit_id}`}${typeof unit.floor === "number" ? `, kat ${unit.floor}` : ""}`
-    : `Stan ${ticket.unit_id}`;
+    : "—";
 
-  const buildingLabel = building?.address ? `${building.address}${building.postal_code ? ` (${building.postal_code})` : ""}` : "—";
-
-  // 3) server actions za forme (da uzmu FormData)
   async function saveNote(formData) {
     "use server";
     const note = formData.get("note");
@@ -109,28 +121,60 @@ export default async function ContractorTicketView({ ticketId }) {
     await updateTicketStatus(ticketId, status);
   }
 
-  // 4) datumi (prikazujemo sve atribute ticketa)
-  const createdAt = ticket.created_at ? new Date(ticket.created_at).toLocaleString("hr-HR") : "—";
-  const resolvedAt = ticket.resolved_at ? new Date(ticket.resolved_at).toLocaleString("hr-HR") : "—";
+  const createdAt = ticket.created_at
+    ? new Date(ticket.created_at).toLocaleString("hr-HR")
+    : "—";
+  const resolvedAt = ticket.resolved_at
+    ? new Date(ticket.resolved_at).toLocaleString("hr-HR")
+    : "—";
+
+  const isResolved = ticket.status === "RESOLVED";
 
   return (
     <div className="space-y-6">
-      {/* Naslov kao na skici */}
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Kvar #{ticket.ticket_id}</h1>
         <Badge className={statusBadgeClass(ticket.status)}>
-            {TICKET_STATUS_LABELS[ticket.status] ?? ticket.status}
+          {TICKET_STATUS_LABELS[ticket.status] ?? ticket.status}
         </Badge>
       </div>
 
-      {/* INFO O KVARU */}
       <Card>
         <CardHeader>
-          <CardTitle>Informacije</CardTitle>
+          <div className="flex items-start justify-between">
+            <CardTitle>Informacije</CardTitle>
+
+            {/* ⭐ Ocjena + komentar (kompaktnije) */}
+            <div className="flex flex-col items-center gap-1 text-center">
+              <div className="flex items-center gap-1 text-sm">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const filled = review?.rating && star <= review.rating;
+                  return (
+                    <span
+                      key={star}
+                      className={filled ? "text-yellow-500" : "text-slate-300"}
+                    >
+                      ★
+                    </span>
+                  );
+                })}
+              </div>
+
+              {isResolved && review?.comment && (
+                <details className="inline-block text-right">
+                  <summary className="inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-xs text-slate-700 bg-slate-50">
+                    💬 <span>Komentar</span>
+                  </summary>
+                  <div className="mt-1 max-w-xs rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                    {review.comment}
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Prikaz svih atributa iz ticket tablice */}
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <p className="text-sm font-medium">Naslov</p>
@@ -140,57 +184,39 @@ export default async function ContractorTicketView({ ticketId }) {
             <div>
               <p className="text-sm font-medium">Kategorija</p>
               <p className="text-sm text-slate-600">
-                {ISSUE_CATEGORY_LABELS[ticket.issue_category] ?? ticket.issue_category ?? "—"}
+                {ISSUE_CATEGORY_LABELS[ticket.issue_category] ??
+                  ticket.issue_category ??
+                  "—"}
               </p>
             </div>
 
             <div>
               <p className="text-sm font-medium">Lokacija</p>
-              <p className="text-sm text-slate-600">{locationLabel}</p>
-              <p className="text-xs text-slate-500">{buildingLabel}</p>
+              <p className="text-sm text-slate-500">{addressLine}</p>
+              <p className="text-xs text-slate-500">{unitLine}</p>
             </div>
 
             <div>
-              <p className="text-sm font-medium">Prijavitelj</p>
-              <p className="text-sm text-slate-600">{reporterName}</p>
-              <p className="text-xs text-slate-500">{reporterEmail}</p>
+              <p className="text-sm font-medium">Stanar</p>
+              <p className="text-sm text-slate-600">{tenantName}</p>
+              <p className="text-xs text-slate-500">{tenantEmail}</p>
             </div>
 
             <div>
-              <p className="text-sm font-medium">Datum (created_at)</p>
+              <p className="text-sm font-medium">Datum otvaranja</p>
               <p className="text-sm text-slate-600">{createdAt}</p>
             </div>
 
             <div>
-              <p className="text-sm font-medium">Datum zatvaranja (resolved_at)</p>
+              <p className="text-sm font-medium">Datum zatvaranja</p>
               <p className="text-sm text-slate-600">{resolvedAt}</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">created_by</p>
-              <p className="text-sm text-slate-600">{ticket.created_by ?? "—"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">assigned_to</p>
-              <p className="text-sm text-slate-600">{ticket.assigned_to ?? "—"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">unit_id</p>
-              <p className="text-sm text-slate-600">{ticket.unit_id ?? "—"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">status</p>
-              <p className="text-sm text-slate-600">{ticket.status ?? "—"}</p>
             </div>
           </div>
 
           <Separator />
 
           <div>
-            <p className="text-sm font-medium">Opis (description)</p>
+            <p className="text-sm font-medium">Opis</p>
             <p className="text-sm text-slate-600 whitespace-pre-wrap">
               {ticket.description ?? "—"}
             </p>
@@ -199,8 +225,7 @@ export default async function ContractorTicketView({ ticketId }) {
           <Separator />
 
           <div>
-            <p className="text-sm font-medium">Foto</p>
-
+            <p className="text-sm font-medium">Fotografije kvara</p>
             {Array.isArray(photos) && photos.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-3">
                 {photos.map((p) => (
@@ -221,14 +246,14 @@ export default async function ContractorTicketView({ ticketId }) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500 mt-1">Nema priloženih slika.</p>
+              <p className="text-sm text-slate-500 mt-1">
+                Nema priloženih slika.
+              </p>
             )}
           </div>
-
         </CardContent>
       </Card>
 
-      {/* MOJE NAPOMENE */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Moje napomene</CardTitle>
@@ -236,10 +261,16 @@ export default async function ContractorTicketView({ ticketId }) {
 
         <CardContent>
           <form action={saveNote} className="space-y-3">
-            <Label htmlFor="note" className="sr-only">Napomena</Label>
+            <Label htmlFor="note" className="sr-only">
+              Napomena
+            </Label>
 
-            <textarea name="note" defaultValue={ticket.comment ?? ""} rows={5} className="w-full rounded-md border p-3" />
-
+            <textarea
+              name="note"
+              defaultValue={ticket.comment ?? ""}
+              rows={5}
+              className="w-full rounded-md border p-3"
+            />
 
             <div className="flex justify-end">
               <Button type="submit">Spremi</Button>
@@ -248,7 +279,6 @@ export default async function ContractorTicketView({ ticketId }) {
         </CardContent>
       </Card>
 
-      {/* STATUS KVARA */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Status kvara</CardTitle>
@@ -258,7 +288,13 @@ export default async function ContractorTicketView({ ticketId }) {
           <form action={saveStatus} className="space-y-4">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm">
-                <input type="radio" name="status" value="OPEN" defaultChecked={ticket.status === "OPEN"} />
+                <input
+                  type="radio"
+                  name="status"
+                  value="OPEN"
+                  defaultChecked={ticket.status === "OPEN"}
+                  disabled={isResolved}
+                />
                 Otvoreno
               </label>
 
@@ -268,6 +304,7 @@ export default async function ContractorTicketView({ ticketId }) {
                   name="status"
                   value="IN_PROGRESS"
                   defaultChecked={ticket.status === "IN_PROGRESS"}
+                  disabled={isResolved}
                 />
                 U tijeku
               </label>
@@ -278,13 +315,20 @@ export default async function ContractorTicketView({ ticketId }) {
                   name="status"
                   value="RESOLVED"
                   defaultChecked={ticket.status === "RESOLVED"}
+                  disabled={isResolved}
                 />
                 Završeno
               </label>
             </div>
 
+            {isResolved ? (
+              <p className="text-sm text-slate-600">Kvar je završen.</p>
+            ) : null}
+
             <div className="flex justify-end">
-              <Button type="submit">Spremi</Button>
+              <Button type="submit" disabled={isResolved}>
+                Spremi
+              </Button>
             </div>
           </form>
         </CardContent>
