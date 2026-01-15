@@ -4,6 +4,8 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from "@/components/ui/table";
 import InviteTenantDialog from "./invite-tenant-dialog";
+import CancelInviteButton from "./cancel-invite-button";
+import { Badge } from "@/components/ui/badge";
 
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
 
@@ -33,6 +35,17 @@ export default async function RepresentativeTenantsView() {
   }
 
   const buildingId = repRecord.building_id;
+
+  // dohvat pozivnica
+  const { data: invitations, error: invErr } = await supabase
+    .from("invitation")
+    .select("to_email, created_at")
+    .eq("from_id", user.id);
+
+  if (invErr) {
+    console.error("Greška pri dohvaćanju pozivnica:", invErr);
+  }
+
 
   // dohvat unit_id, label, floor
   const { data: units, error: unitsError } = await supabase
@@ -94,14 +107,37 @@ export default async function RepresentativeTenantsView() {
     const unitMeta = unitById.get(t.unit_id) ?? null;
 
     return {
-      user_id: t.user_id,
+      id: t.user_id,
       first_name: p?.first_name ?? null,
       last_name: p?.last_name ?? null,
       email: p?.email ?? null,
       unit_id: t.unit_id,
-      unit: unitMeta, 
+      unit: unitMeta,
+      status: "ACTIVE",
     };
   });
+
+  // dodavanje pozivnica u retke, ali samo onih koje nisu već aktivni stanari
+  const activeEmails = new Set(rows.map(r => r.email).filter(Boolean));
+  
+  const invitationRows = [];
+  const handledEmails = new Set();
+
+  for (const inv of (invitations ?? [])) {
+    if (!activeEmails.has(inv.to_email) && !handledEmails.has(inv.to_email)) {
+      invitationRows.push({
+        id: `inv-${inv.to_email}`,
+        first_name: null,
+        last_name: null,
+        email: inv.to_email,
+        unit: null,
+        status: "PENDING",
+      });
+      handledEmails.add(inv.to_email);
+    }
+  }
+
+  const allRows = [...rows, ...invitationRows];
 
   return (
     <div className="space-y-6">
@@ -122,22 +158,40 @@ export default async function RepresentativeTenantsView() {
                   <TableHead>Prezime</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Stan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 ? (
+                {allRows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground">
-                      Nema stanara za vašu zgradu.
+                    <TableCell colSpan={6} className="text-muted-foreground">
+                      Nema stanara ni aktivnih pozivnica.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  rows.map((r) => (
-                    <TableRow key={r.user_id}>
+                  allRows.map((r) => (
+                    <TableRow key={r.id}>
                       <TableCell>{r.first_name ?? "—"}</TableCell>
                       <TableCell>{r.last_name ?? "—"}</TableCell>
                       <TableCell>{r.email ?? "—"}</TableCell>
                       <TableCell>{formatUnit(r.unit)}</TableCell>
+                      <TableCell>
+                        {r.status === "ACTIVE" ? (
+                          <Badge variant="success" className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">
+                            Aktivan
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200">
+                            Na čekanju
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.status === "PENDING" && (
+                          <CancelInviteButton email={r.email} />
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
