@@ -26,7 +26,7 @@ const TICKET_STATUS_LABELS = {
   RESOLVED: "ZAVRŠENO",
 };
 
-// boje po statusu (OPEN zeleno, IN_PROGRESS narančasto, RESOLVED crveno)
+// boje po statusu
 const statusBadgeClass = (status) => {
   switch (status) {
     case "OPEN":
@@ -41,7 +41,6 @@ const statusBadgeClass = (status) => {
 };
 
 export default async function ContractorView() {
-  // Dohvat podataka (funkcionalnost ostaje ista)
   const { data: tickets, error } = await getTicketsForContractor();
 
   if (error) {
@@ -96,56 +95,39 @@ export default async function ContractorView() {
                   <TableHead className="text-center">Naslov</TableHead>
                   <TableHead className="text-center">Kategorija</TableHead>
                   <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-center">Datum</TableHead>
                   <TableHead className="text-center">Akcije</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {tickets.map((t) => {
-                  const isResolved = t.status === "RESOLVED";
-                  const dateLabel = isResolved ? "Zatvoreno" : "Otvoreno";
-                  const dateValue = isResolved ? t.resolved_at : t.created_at;
+                {tickets.map((t) => (
+                  <TableRow key={t.ticket_id}>
+                    <TableCell className="text-sm text-slate-500 text-center">
+                      {t.ticket_id}
+                    </TableCell>
 
-                  return (
-                    <TableRow key={t.ticket_id}>
-                      <TableCell className="text-sm text-slate-500 text-center">
-                        {t.ticket_id}
-                      </TableCell>
+                    <TableCell className="max-w-[280px] truncate text-center">
+                      {t.title ?? "—"}
+                    </TableCell>
 
-                      <TableCell className="max-w-[280px] truncate text-center">
-                        {t.title ?? "—"}
-                      </TableCell>
+                    <TableCell className="text-center">
+                      {ISSUE_CATEGORY_LABELS[t.issue_category] ??
+                        t.issue_category}
+                    </TableCell>
 
-                      <TableCell className="text-center">
-                        {ISSUE_CATEGORY_LABELS[t.issue_category] ?? t.issue_category}
-                      </TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={statusBadgeClass(t.status)}>
+                        {TICKET_STATUS_LABELS[t.status] ?? t.status}
+                      </Badge>
+                    </TableCell>
 
-                      <TableCell className="text-center">
-                        <Badge className={statusBadgeClass(t.status)}>
-                          {TICKET_STATUS_LABELS[t.status] ?? t.status}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="whitespace-nowrap text-center">
-                        <div>
-                          <div className="font-medium">{dateLabel}</div>
-                          <div className="text-xs text-slate-500">
-                            {dateValue
-                              ? new Date(dateValue).toLocaleDateString("hr-HR")
-                              : "—"}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="text-center">
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/tickets/${t.ticket_id}`}>Detalji</Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    <TableCell className="text-center">
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/tickets/${t.ticket_id}`}>Detalji</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
