@@ -23,22 +23,15 @@ const ISSUE_CATEGORY_LABELS = {
 const TICKET_STATUS_LABELS = {
   OPEN: "OTVORENO",
   IN_PROGRESS: "U TIJEKU",
-  RESOLVED: "ZAVRŠENO",
+  RESOLVED: "RIJEŠENO",
 };
 
-// boje po statusu
-const statusBadgeClass = (status) => {
-  switch (status) {
-    case "OPEN":
-      return "bg-green-100 text-black border border-green-200";
-    case "IN_PROGRESS":
-      return "bg-orange-100 text-black border border-orange-200";
-    case "RESOLVED":
-      return "bg-red-100 text-black border border-red-200";
-    default:
-      return "bg-slate-100 text-slate-800 border border-slate-200";
-  }
-};
+// bagde po statusu
+const badgeVariant = (status) =>
+    status === "OPEN" ? "destructive" :
+    status === "RESOLVED" ? "secondary" :
+    status === "IN_PROGRESS" ? "default" : "default";
+
 
 export default async function ContractorView() {
   const { data: tickets, error } = await getTicketsForContractor();
@@ -116,9 +109,10 @@ export default async function ContractorView() {
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <Badge className={statusBadgeClass(t.status)}>
+                      <Badge variant={badgeVariant(t.status)}>
                         {TICKET_STATUS_LABELS[t.status] ?? t.status}
                       </Badge>
+
                     </TableCell>
 
                     <TableCell className="text-center">

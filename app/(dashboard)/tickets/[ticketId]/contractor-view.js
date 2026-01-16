@@ -12,18 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-const statusBadgeClass = (status) => {
-  switch (status) {
-    case "OPEN":
-      return "bg-green-100 text-black border border-green-200";
-    case "IN_PROGRESS":
-      return "bg-orange-100 text-black border border-orange-200";
-    case "RESOLVED":
-      return "bg-red-100 text-black border border-red-200";
-    default:
-      return "bg-slate-100 text-slate-800";
-  }
-};
+// bagde po statusu
+const badgeVariant = (status) =>
+    status === "OPEN" ? "destructive" :
+    status === "RESOLVED" ? "secondary" :
+    status === "IN_PROGRESS" ? "default" : "default";
 
 const ISSUE_CATEGORY_LABELS = {
   ELECTRICAL: "ELEKTRIČNI",
@@ -35,7 +28,7 @@ const ISSUE_CATEGORY_LABELS = {
 const TICKET_STATUS_LABELS = {
   OPEN: "OTVORENO",
   IN_PROGRESS: "U TIJEKU",
-  RESOLVED: "ZAVRŠENO",
+  RESOLVED: "RIJEŠENO",
 };
 
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
@@ -134,9 +127,10 @@ export default async function ContractorTicketView({ ticketId }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Kvar #{ticket.ticket_id}</h1>
-        <Badge className={statusBadgeClass(ticket.status)}>
-          {TICKET_STATUS_LABELS[ticket.status] ?? ticket.status}
-        </Badge>
+          <Badge variant={badgeVariant(ticket.status)}>
+            {TICKET_STATUS_LABELS[ticket.status] ?? ticket.status}
+          </Badge>
+
       </div>
 
       <Card>
@@ -298,7 +292,7 @@ export default async function ContractorTicketView({ ticketId }) {
                   defaultChecked={ticket.status === "OPEN"}
                   disabled={isResolved}
                 />
-                Otvoreno
+                OTVORENO
               </label>
 
               <label className="flex items-center gap-2 text-sm">
@@ -309,7 +303,7 @@ export default async function ContractorTicketView({ ticketId }) {
                   defaultChecked={ticket.status === "IN_PROGRESS"}
                   disabled={isResolved}
                 />
-                U tijeku
+                U TIJEKU
               </label>
 
               <label className="flex items-center gap-2 text-sm">
@@ -320,7 +314,7 @@ export default async function ContractorTicketView({ ticketId }) {
                   defaultChecked={ticket.status === "RESOLVED"}
                   disabled={isResolved}
                 />
-                Završeno
+                RIJEŠENO
               </label>
             </div>
 
