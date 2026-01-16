@@ -37,7 +37,7 @@ export function DashboardHeader({ user, role, logoutAction }) {
                             HomeFix
                         </Link>
 
-                        <nav className="hidden md:flex gap-6">
+                        <nav className="flex flex-wrap gap-4">
                             {currentNavItems.map((item) => {
                                 const isActive = pathname === item.href;
                                 return (
