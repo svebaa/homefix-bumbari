@@ -21,6 +21,11 @@ const ROLE_COPY = {
     message:
       "Povežite se s vašim stanarima i jednostavno upravljajte kvarovima u zgradi.",
   },
+  ADMIN: {
+    label: "administrator",
+    message:
+      "Upravljajte sustavom i korisnicima.",
+  },
 };
 
 

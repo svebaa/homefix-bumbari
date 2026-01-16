@@ -18,6 +18,10 @@ const NAV_CONFIG = {
         { href: "/tenants", label: "Stanari" },
         { href: "/reports", label: "Izvještaji" },
     ],
+    ADMIN: [
+        { href: "/admin/users", label: "Korisnici" },
+        { href: "/admin/membership", label: "Članstvo" },
+    ],
 };
 
 export function DashboardHeader({ user, role, logoutAction }) {
