@@ -210,12 +210,16 @@ export default async function RepresentativeTicketView({ ticketId }) {
       {/* INFORMACIJE + rating u gornjem desnom kutu kartice */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
-            <CardTitle>Informacije</CardTitle>
+          <div className="flex items-center justify-between">
+            {/* NASLOV */}
+            <CardTitle className="leading-none">
+              Informacije
+            </CardTitle>
 
-            <div className="flex flex-col items-end gap-2">
+            {/* DESNO: zvjezdice + komentar */}
+            <div className="flex items-center gap-2">
               {/* Zvjezdice */}
-              <div className="flex items-center gap-1 text-sm">
+              <div className="flex items-center gap-1 text-sm leading-none">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const filled = review?.rating && star <= review.rating;
                   return (
@@ -228,26 +232,32 @@ export default async function RepresentativeTicketView({ ticketId }) {
                   );
                 })}
                 {review?.rating && (
-                  <span className="text-xs text-slate-500 ml-1">
+                  <span className="text-xs text-slate-500 ml-1 leading-none">
                     {review.rating}/5
                   </span>
                 )}
               </div>
 
-              {/* Komentar recenzije odmah ispod zvjezdica */}
+              {/* Komentar – overlay, ne gura layout */}
               {isResolved && review?.comment && (
-                <details className="inline-block text-right">
-                  <summary className="inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-xs text-slate-700 bg-slate-50">
-                    💬 <span>Komentar</span>
+                <details className="relative">
+                  <summary className="inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-1 text-xs text-slate-700 bg-slate-50">
+                    💬
                   </summary>
-                  <div className="mt-2 max-w-xs rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                    {review.comment}
+
+                  <div className="absolute right-0 mt-2 w-72 max-w-xs rounded-lg border bg-white dark:bg-slate-900 shadow-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-100 z-50">
+                    <div className="whitespace-pre-wrap">
+                      {review.comment}
+                    </div>
                   </div>
                 </details>
               )}
             </div>
           </div>
         </CardHeader>
+
+
+
 
         <CardContent className="space-y-3">
           <div>
