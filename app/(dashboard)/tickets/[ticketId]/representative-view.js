@@ -39,6 +39,15 @@ const SPECIALIZATION_LABELS = {
 // pomoćna funkcija za puno ime
 const fullName = (f, l) => [f, l].filter(Boolean).join(" ").trim() || "—";
 
+// pomoćna funkcija za formatiranje prosjeka
+const formatAvg = (avg) => {
+  if (avg == null) return null;
+  const n = Number(avg);
+  if (Number.isNaN(n)) return null;
+  return n.toFixed(1);
+};
+
+
 
 // Kompatibilnost: spec mora odgovarati kategoriji, GENERAL moze sve
 const specializationToCategory = {
@@ -121,6 +130,64 @@ export default async function RepresentativeTicketView({ ticketId }) {
   const compatibleContractors = contractors.filter((c) =>
     isCompatible(ticket.issue_category, c.specialization)
   );
+
+  // Ratings i prosjek
+
+      const compatibleIds = compatibleContractors.map((c) => c.user_id);
+      // --- OCJENE (prosjek po kompatibilnom majstoru) ---
+    const { data: ticketsForCompatible, error: tErr } = compatibleIds.length
+      ? await supabase
+          .from("ticket")
+          .select("ticket_id, assigned_to")
+          .in("assigned_to", compatibleIds)
+      : { data: [], error: null };
+
+    if (tErr) {
+      return (
+        <p className="text-red-600">
+          Greška pri dohvaćanju ticketova za ocjene: {tErr.message}
+        </p>
+      );
+    }
+
+    const ticketToContractor = new Map(
+      (ticketsForCompatible ?? []).map((t) => [t.ticket_id, t.assigned_to])
+    );
+
+    const ticketIdsForRatings = (ticketsForCompatible ?? []).map((t) => t.ticket_id);
+
+    const { data: ratingRows, error: rErr } = ticketIdsForRatings.length
+      ? await supabase
+          .from("rating")
+          .select("ticket_id, rating")
+          .in("ticket_id", ticketIdsForRatings)
+      : { data: [], error: null };
+
+    if (rErr) {
+      return <p className="text-red-600">Greška pri dohvaćanju ocjena: {rErr.message}</p>;
+    }
+
+    // contractorId -> { sum, count }
+    const agg = new Map();
+    for (const row of ratingRows ?? []) {
+      const contractorId = ticketToContractor.get(row.ticket_id);
+      if (!contractorId) continue;
+
+      const val = Number(row.rating);
+      if (Number.isNaN(val)) continue;
+
+      const prev = agg.get(contractorId) ?? { sum: 0, count: 0 };
+      prev.sum += val;
+      prev.count += 1;
+      agg.set(contractorId, prev);
+    }
+
+    // user_id -> { avg, count }
+    const ratingById = new Map();
+    for (const [contractorId, { sum, count }] of agg.entries()) {
+      if (count > 0) ratingById.set(contractorId, { avg: sum / count, count });
+    }
+
 
 
   return (
@@ -284,19 +351,33 @@ export default async function RepresentativeTicketView({ ticketId }) {
                 />
               </SelectTrigger>
               <SelectContent>
-                {compatibleContractors.length === 0 ? (
-                  <div className="px-3 py-1 text-sm text-muted-foreground">
-                    Nema kompatibilnih majstora
-                  </div>
-                ) : (
-                  compatibleContractors.map((c) => (
-                    <SelectItem key={c.user_id} value={c.user_id}>
-                      {c.company_name ? c.company_name : "Bez naziva obrta"}
-                      {c.phone ? ` · ${c.phone}` : ""}
-                      {` · ${SPECIALIZATION_LABELS[c.specialization] ?? c.specialization}`}
-                    </SelectItem>
-                  ))
-                )}
+                  {compatibleContractors.map((c) => {
+                      const r = ratingById.get(c.user_id); // { avg, count } ili undefined
+                      const avgText = formatAvg(r?.avg);
+
+                      return (
+                        <SelectItem key={c.user_id} value={c.user_id}>
+                          <div className="flex w-full items-center justify-between gap-3">
+                            <div className="truncate">
+                              {c.company_name ? c.company_name : "Bez naziva obrta"}
+                              {c.phone ? ` · ${c.phone}` : ""}
+                              {` · ${SPECIALIZATION_LABELS[c.specialization] ?? c.specialization}`}
+                            </div>
+
+                            {avgText ? (
+                              <div className="flex items-center gap-1 text-sm">
+                                <span>{avgText}</span>
+                                <span className="text-yellow-500">★</span>
+                                <span className="text-xs text-slate-400 ml-1">({r.count})</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400">Novo</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+
               </SelectContent>
             </Select>
             <Button type="submit" disabled={!compatibleContractors.length || isResolved}>
