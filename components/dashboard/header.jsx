@@ -7,16 +7,13 @@ import { cn } from "@/lib/utils";
 
 const NAV_CONFIG = {
     TENANT: [
-        { href: "/dashboard", label: "Dashboard" },
         { href: "/tickets", label: "Kvarovi" },
     ],
     CONTRACTOR: [
-        { href: "/dashboard", label: "Dashboard" },
         { href: "/tickets", label: "Kvarovi" },
         { href: "/profile", label: "Profil" },
     ],
     REPRESENTATIVE: [
-        { href: "/dashboard", label: "Dashboard" },
         { href: "/tickets", label: "Kvarovi" },
         { href: "/tenants", label: "Stanari" },
         { href: "/reports", label: "Izvještaji" },
@@ -34,7 +31,7 @@ export function DashboardHeader({ user, role, logoutAction }) {
                 <div className="flex justify-between items-center py-4">
                     <div className="flex items-center gap-8">
                         <Link
-                            href="/dashboard"
+                            href="/homepage"
                             className="text-xl font-bold text-slate-900 dark:text-white"
                         >
                             HomeFix
