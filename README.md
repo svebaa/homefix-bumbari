@@ -1,25 +1,33 @@
-# Programsko inženjerstvo
-
-> Ime projekta u naslovu ima cilj opisati namjenu projekta te pomoći u podizanju početnog interesa za projekt prezentirajući osnovnu svrhu projekta.
-> Isključivo ovisi o Vama!
->
-> Naravno, nijedan predložak nije idealan za sve projekte jer su potrebe i ciljevi različiti. Ne bojte se naglasiti Vaš cilj u ovoj početnoj stranici projekta, podržat ćemo ga bez obzira usredotočili se Vi više na tenologiju ili marketing.
->
-> Zašto ovaj dokument? Samo manji dio timova je do sada propoznao potrebu (a i meni je lakše pratiti Vaš rad).
+# HomeFix
+HomeFix je web aplikacija namijenjena upravljanju prijavama kvarova u stambenim zgradama koja omogućuje digitaliziranu komunikaciju između stanara, predstavnika stanara i majstora te praćenje statusa i povijesti kvarova. Sustav uklanja nedostatke postojećeg pristupa prijave kvarova te omogućuje bolju organizaciju, veću transparentnost i učinkovitije održavanje zgrade.
 
 # Opis projekta
 
 Ovaj projekt je rezultat timskog rada u sklopu projeknog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu.
 
-Kratko opisati cilj Vašeg projekta. Vaša motivacija? (Napomena: odgovor nije »Zato što je to bio zadatak i nismo imali ideje za drugo.«). Koji problem rješavate?
+## Motivacija
+Motivacija za razvoj sustava HomeFix proizlazi iz potrebe za efikasnijim upravljanjem održavanja stambenih zgrada. Danas se prijave kvarova često odvijaju neformalnim kanalima poput telefonskih poziva i usmene komunikacije. Takav pristup otežava praćenje prijave, uzrokuje gubitak informacija i produžuje vrijeme rješavanja kvarova. Digitalizacijom i centralizacijom procesa prijave kvarova omogućuje se bolja organizacija rada, jasna evidencija te kvalitetnija komunikacija između svih uključenih sudionika. Time se smanjuje administrativni teret i olakšava svakodnevno upravljanje prijavama kvarova u stambenim zgradama.
 
-> Obzirom da je ovo zadani projekt navedite i što želite/jeste novo naučili.
+## Usvojena znanja
+Tijekom izrade projekta usvojena su i produbljena znanja iz razvoja web aplikacija uz primjenu modernih tehnologija. HomeFix je omogućio praktičnu primjenu teorijskih znanja, uključujući rad s bazom podataka, autentifikacijom i aplikacijskom logikom, uz razumijevanje cjeloukupnog razvojnog procesa od analize do razmještaja u cloud okruženju. Također je razvijena i sposobnost timskog rada kroz suradnju, raspodjelu zadataka i zajedničko rješavanje problema tijekom cijelog trajanja projekta.
 
-> Dobro izrađen opis omogućuje vam da pokažete svoj rad drugim programerima, kao i potencijalnim poslodavcima. Ne samo da prvi dojam na stranici opisa često razlikuje dobar projekt od lošeg projekta već i predstavlja dobru praksu koju morate savladati.
+# Ključni zahtjevi
+## Funkcionalni zahtjevi
 
-# Funkcijski zahtjevi
+Sustav mora omogućiti registraciju i prijavu korisnika različitih uloga (stanar, majstor i predstavnik suvlasnika) te upravljanje korisničkim računima i profilnim podacima. Stanari mogu prijavljivati kvarove uz unos osnovnih informacija i pratiti njihov status, dok predstavnici suvlasnika imaju mogućnost dodjeljivanja kvarova majstorima, pregleda statistike i generiranja izvještaja. Majstori mogu ažurirati status prijava, dodavati napomene te imaju javni profil s osnovnim informacijama i ocjenama. Sustav podržava slanje e-mail pozivnica, ocjenjivanje majstora nakon rješavanja kvara te naplatu godišnje članarine za majstore uz ograničavanje pristupa funkcionalnostima u slučaju neplaćenog članstva.
 
-> Navedite ključne zahtjeve Vašeg projekta.
+## Nefunkcionalni zahtjevi
+- **Performanse** - Aplikacija mora imati brzo vrijeme učitavanja i odziva, podržavati istovremeni rad većeg broja korisnika te koristiti optimizaciju medijskih sadržaja i mehanizme predmemorije.
+
+- **Sigurnost** - Sva komunikacija mora biti zaštićena HTTPS protokolom, uz sigurne metode autentifikacije i pohranu lozinki u kriptiranom obliku, kao i zaštitu od uobičajenih sigurnosnih prijetnji.
+
+- **Pouzdanost i dostupnost** - Sustav mora imati visoku dostupnost, mehanizme za oporavak od grešaka i kontinuirani nadzor rada kako bi se osigurao stabilan i pouzdan rad aplikacije.
+
+- **Skalabilnost** - Arhitektura sustava mora omogućiti rast broja korisnika i podataka te koristiti cloud infrastrukturu koja podržava elastično skaliranje.
+
+- **Održivost** - Kod mora biti modularan, dobro strukturiran i dokumentiran, uz prateću tehničku i korisničku dokumentaciju te definirane procese implementacije i održavanja.
+
+- **Upotrebljivost i interoperabilnost** - Korisničko sučelje mora biti intuitivno, responzivno i prilagođeno različitim uređajima, uz podršku hrvatskog jezika i kompatibilnost s modernim web preglednicima i operativnim sustavima.
 
 # Tehnologije
 
