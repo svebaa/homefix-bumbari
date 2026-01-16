@@ -97,9 +97,6 @@ Otvorite [http://localhost:3000](http://localhost:3000) u pregledniku
 - **Lovro Milišić** (lovro.milisic@fer.unizg.hr)
 - **Jan Klasić** (jan.klacic@fer.unizg.hr)
 
-# Kontribucije
-
-> Pravila ovise o organizaciji tima i su često izdvojena u CONTRIBUTING.md
 
 # 📝 Kodeks ponašanja [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
