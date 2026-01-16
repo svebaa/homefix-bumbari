@@ -10,7 +10,7 @@ export default function Home() {
             Dobrodošli u <span className="text-primary">HomeFix</span>
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-300">
-            Vaše rješenje za upravljanje i organizaciju.
+            Digitalna platforma za prijavu, praćenje i upravljanje kvarovima u zgradama.
           </p>
         </div>
 
