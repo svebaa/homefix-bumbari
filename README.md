@@ -68,6 +68,13 @@ Kreirajte `.env.local` file u root direktoriju:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+APDF_API_KEY=your_apdf_api_key
 ```
 
 **Napomena:** `.env.local` je u `.gitignore` i **NEĆE** biti commitiran. Svaki developer mora kreirati svoj lokalni `.env.local` file.
