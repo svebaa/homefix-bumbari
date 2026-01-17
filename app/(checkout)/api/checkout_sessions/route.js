@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 
 import { stripe } from '../../../../lib/stripe/stripe'
 import { createClient } from "@/lib/supabase/server";
+import { getMembershipPrice } from "@/lib/actions/admin-actions";
 
 export async function POST(request) {
   try {
@@ -28,10 +29,15 @@ export async function POST(request) {
     const headersList = await headers()
     const origin = headersList.get('origin')
 
+    const priceRes = await getMembershipPrice();
+    if (priceRes.error) {
+        return NextResponse.json({ error: priceRes.error }, { status: 500 });
+    }
+
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
-          price: 'price_1SN7VsAPOXW8kSFrD8pHnv7L',
+          price: priceRes.data.id,
           quantity: 1,
         },
       ],
