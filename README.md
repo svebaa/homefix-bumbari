@@ -102,7 +102,7 @@ Otvorite [http://localhost:3000](http://localhost:3000) u pregledniku
 - **Sara Klarić** (sara.klaric@fer.unizg.hr)
 - **Marko Maslać** (marko.maslac@fer.unizg.hr)
 - **Lovro Milišić** (lovro.milisic@fer.unizg.hr)
-- **Jan Klasić** (jan.klacic@fer.unizg.hr)
+- **Jan Klasić** (jan.klasic@fer.unizg.hr)
 
 
 # 📝 Kodeks ponašanja [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
